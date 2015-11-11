@@ -1,0 +1,113 @@
+#+TITLE: Gaussian prime spirals
+Gaussian integers are complex numbers where both the real and
+imaginary parts are integers. So \(3+7i\) is a Gaussian integer, but
+\(1/2+3i\) isn't.
+
+Pretty straight-forward, right?
+
+A Gaussian prime is, funnily enough, a Gaussian integer that is also a
+prime. Because complex numbers are a bit weird the rules for
+determining whether any Gaussian integer is prime are a little
+convoluted. Basically it boils down to:
+
+- if either the real or imaginary part is \(0\) the other part must be
+  a prime of the form \(4n+3\).
+    
+Or:
+
+- the real and imaginary parts squared and added together must be a
+  prime *not* of the form \(4n+3\).
+
+A prime of the form \(4n+3\) simply means that if you subtract three
+and divide by four the resulting number should be an integer.
+
+One thing to note about the Gaussian primes is that they are
+symmetrical around both the real and imaginary axes. This means that
+since \(13+8i\) is a prime, so are all \(±13±8i\). It’s also worth
+noting that all \(±8±13i\) are primes too. Lots of symmetry!
+
+But what's this got to do with spirals, you ask. Well, nothing as far
+as I can see since they're not really spirals, but that seems to be
+the name that's stuck.
+
+-----
+
+Start at \(8+13i\), which is a prime, and repeatedly add \(1\) until
+you reach another prime, \(10+13i\), then turn left, so now you’re
+adding \(i\) and continue until you reach another prime, \(10+17i\)
+and turn left again (\(-1\)) and continue repeating, you’ll eventually
+end up tracing over your previous path:
+
+1.  \(8+13i\)
+2.  \(10+13i\)
+3.  \(10+17i\)
+4.  \(8+17i\)
+5.  \(8+13i\) (same as 1)
+6.  \(10+13i\) (same as 2)
+7.  etc.
+
+It seems to be a rule that you will always end up tracing a loop,
+although it’s usually more complex than the square in the example
+above. For example \(-12-7i\) looks like this:
+
+#+CAPTION: \(-12-7i\) spiral
+[[file:gaussian-prime-spirals/Screen-Shot-2014-09-21-at-10-38-14.png]]
+
+The “spirals” are quite attractive and nicely symmetrical. Or at least
+all the ones I’ve seen have been.
+
+#+CAPTION: \(5+5i\) spiral
+[[file:gaussian-prime-spirals/Screen-Shot-2014-09-21-at-10-44-09.png]]
+
+-----
+
+#+BEGIN_HTML
+<style>
+ #output {
+   width: 100%;
+   height: 30vw;
+   position: relative;
+ }
+
+ #gaussianSpiral {
+   width: 100%;
+   height: 100%;
+ }
+
+#spiralControls input[type="text"] {
+  width: 3em;
+}
+</style>
+<div id="output">
+	<canvas id="gaussianSpiral" width="100%" height="100%"></canvas>
+</div>
+<div id="spiralControls">
+<div id="cornerCount">&nbsp;</div>
+<input type="text" id="realPart" value="8">
++
+<input type="text" id="imaginaryPart" value="13">\(i\)<br>
+<input type="submit" id="makeSpiral" value="generate spiral">
+</div>
+#+END_HTML
+
+Some numbers to try:
+
+- \(-12-7i\)
+- \(3+5i\)
+- \(5+23i\)
+- \(12+28i\)
+- \(1+63i\)
+
+
+- Note :: The script above generates the spiral and displays it in the browser, but it can take quite a long time if the spiral is large, for example **232+277i**. My intention was to include a corner count that updated as the spiral was generated so you could tell it was actually doing something, but battling the CSS on this page has put me off for the time being. I'll try and add it later.
+
+For more information see:
+
+- http://mathoverflow.net/questions/91423/gaussian-prime-spirals
+- http://demonstrations.wolfram.com/GaussianPrimeSpirals/
+
+#+BEGIN_HTML
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+<script src="gaussian-prime-spirals/gaussian-spirals.js"></script>
+#+END_HTML

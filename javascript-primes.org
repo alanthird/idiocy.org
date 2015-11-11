@@ -1,0 +1,106 @@
+#+TITLE: Javascript primes
+I recently decided to revisit the prime detection code I wrote for the
+[[file:gaussian-prime-spirals.org][Gaussian prime spiral]] page. The original method I used was the
+Miller-Rabin technique as described in [[https://mitpress.mit.edu/sicp/][SICP]], but it was recursive and
+could cause a stack overflow quite easily. It also suffered from a
+problem with how Javascript represents integers.
+
+The Miller-Rabin method makes use of exponentials, which can be broken
+down into a series of repeated squares. In the worst case if you're
+wanting to find out if \(n\) is a prime, you'll perform \((n−1)^2\),
+which can be an issue with large numbers.
+
+Javascript integers max out at \(2^{53}\), which means the largest
+number you can square and get the correct answer is less than
+\(2^{27}\). Which isn't a terribly large number (134,217,728).
+
+An alternative, and rather naive, method is to just divide \(n\) by
+every number from \(2\) up to \(n−1\). This is pretty inefficient. You
+can improve it a bit by only checking the prime numbers up to \(\sqrt{n}\).
+This can be achieved quite simply using streams:
+
+#+BEGIN_SRC js
+function isPrime(n) {
+  function p(n) {
+    return {
+      v: n,
+      n: function() {
+        for (n+=2 ; !isPrime(n) ; n+=2);
+        return p(n);
+      }
+    }
+  }
+
+  var pr=p(3);
+
+  do {
+    if (pr.v * pr.v > n) {
+      return true;
+    }
+    if (n%pr.v===0) {
+      return false;
+    }
+  }
+  while (pr=pr.n());
+}
+#+END_SRC
+
+This is pretty cool, you create a stream of prime numbers (starting
+from 3) and check against each one. The definition of the prime
+stream relies on the isPrime function too. The smart bit is that to
+check whether a number is prime the stream will always have been
+generated to a high enough number to divide by. For example, if you
+want to check \(5\), then the stream already has 3 in it, and \(3^2 >
+5\), which means it passes.
+
+This code benefits a lot from memoization. My final code ended up
+looking like:
+
+#+BEGIN_SRC js
+var isPrime = _.memoize(function(n) {
+  function p(n) {
+    return {
+      v: n,
+      n: function() {
+        for (n+=2 ; !isPrime(n) ; n+=2);
+        return p(n);
+      }
+    }
+  }
+
+  n=Math.abs(n);
+
+  if (n===2) {
+    return true;
+  }
+  if (n < 2 || n%2 === 0) {
+    return false;
+  }
+
+  var pr=p(3);
+
+  do {
+    if (pr.v * pr.v > n) {
+      return true;
+    }
+    if (n%pr.v===0) {
+      return false;
+    }
+  }
+  while (pr=pr.n());
+});
+#+END_SRC
+
+Ideally the stream should be memoized too.
+
+Now, this should be pretty quick for low numbers, certainly faster
+than the Miller-Rabin method, but for larger numbers it should be
+slower. Using Chrome I found the cross-over point to be around five
+thousand, but there wasn’t really much in it. Oddly, when I tried it
+in Firefox the stream-based method ran around four times faster while
+the Miller-Rabin method ran at about the same speed as in Chrome. As
+far as I can tell this means that in Firefox the stream-based method
+is faster for any number less than \(2^{26}\), which is as high as the
+Miller-Rabin method can safely go anyway.
+
+I don’t know why Firefox is so much faster than Chrome.

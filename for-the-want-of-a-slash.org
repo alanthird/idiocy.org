@@ -1,0 +1,112 @@
+#+title: For the want of a slash
+Last week at work we had a minor issue with our public website. We're
+using Drupal with a MySQL backend and =mysqldump= for backups which
+we're then compressing, and, in an act of idiocy, are storing on the
+same drive. We hadn't run into any problems previously because the
+database is supposed to be *significantly* smaller than the disk and
+always has been[fn:: There's some history to this setup, but this is
+the current state of things.].
+
+Until last week.
+
+* Friday
+
+Towards the end of the week I got a resigned phone call from our
+web-team saying that the site was down and could I have a look to see
+if I could bring it back up. After a little poking about I realised
+that the disk had run out of space, so I deleted some spare backups
+and old binary logs that hadn't been recycled yet and the website
+sprang back to life.
+
+After some investigation we found a table called =cache_metatags= that
+was about three times the size of the rest of the database. I
+discussed it with our web-team lead and we decided to look into it on
+Monday. Surely there would be enough disk space for it to last two
+days?
+
+Ah, the hubris of Friday afternoon IT support staff.
+
+* Monday
+
+So the website was down. It had run out of disk space as soon as it
+started running the backup on Friday evening and then spent the next
+two days floundering and being generally unhelpful. We don't do
+support on weekends, so there wasn't anyone around to fix it.
+
+I started by clearing some disk space and it leapt back into life
+almost immediately. Then our web-team lead cleared the Drupal caches
+and that brought the =cache_metatags= table down to a few kilobytes.
+
+I ran a backup immediately, just to be sure.
+
+Looking at the backup log I noticed that the (compressed) database
+backup from the previous Tuesday was significantly larger than the
+backup from the night before. Nobody could think of anything that had
+changed then, and we thought that the increase in the size of the
+Metatag cache was probably the culprit.
+
+* The Metatag module
+
+The Metatag module seems to be used for putting ‘meta tags’ into the
+html output of the site. I know little about this arcane art, but
+apparently they’re useful for search-engines. The module then caches
+the meta tags for each page that Drupal renders so it doesn’t have to
+recreate them every time someone views the page. I found a discussion
+about it caching the tags for 404 pages, which could result in a lot
+of excess cached data if someone hit the site with a lot of junk URLs,
+but this issue appears to have been fixed, so that was ruled out.
+
+To see if I could spot anything unusual I went to the Apache log files
+and immediately noticed something. There were an excessive number of
+logfiles from Tuesday and Wednesday. We rotate them when they reach
+five megabytes, and rarely get through more than two or three in a
+day. (There’s a Varnish caching proxy in front of the web server that
+catches most requests, so the traffic reaching the back-end is,
+generally, fairly low.) We had about *thirty* for these two days.
+Something was clearly not right.
+
+* The logs
+
+The logs were full of entries with extremely long paths, and they
+seemed to consist of repeating segments, like:
+
+=/news/2015/apr/sites/all/modules/fwia/css/sites/all/modules/fwia/css/sites/all/modules/fwia/css/fwia.png=
+
+There were thousands of them and they all seemed to come from one
+search engine optimisation web crawler. I don't know why it was
+crawling our site, but it seemed to have got caught in some sort of
+recursive loop and hammered through thousands[fn:: Probably tens or
+hundreds of thousands. I didn't take the time to try counting] of
+these URLs over the course of about two days.
+
+Our web-team lead immediately recognised the partial URLs and that it
+was related to an image that a module was putting on certain pages. He
+also knew that the image was broken on certain pages, but hadn't
+investigated it yet. Once I knew where to look it didn't take me long
+to work out what had happened.
+
+The image URL was missing a leading =/=, which meant that instead of
+looking for the image in =/sites/all/modules/fwia/css/=, it was
+looking in =/news/2015/apr/sites/all/modules/fwia/css/=. For some
+reason the pages under =/news= handle any extra data in the path by
+ignoring it and displaying the first working URL. This meant that the
+site displayed =/news/2015/apr/sites/all/modules/fwia/css/= exactly
+the same as =/news/2015/apr=, and the broken image URL was
+=/news/2015/apr/sites/all/modules/fwia/css/sites/all/modules/fwia/css/fwia.png=,
+which also happily displayed the same, along with it's own broken
+image URL.
+
+The crawler dutifully followed these broken links, and many others
+that lead from these pages[fn:: The news pages are paginated.], until,
+presumably, the URLs got too long or it finally hit its, rather large,
+depth limit, all the while generating data for the Metatag module to
+cache.
+
+* The moral
+
+Don't backup to the same disk as your data is on, that's just stupid.
+
+The problems here are manifold, and we'll be working to fix as many as
+we can, but it amuses me that a single missing =/= could result in a
+perfect storm of small issues and take our website down for over two
+days.

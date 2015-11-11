@@ -1,0 +1,7 @@
+#+TITLE: site index
+* Articles
+  - [[file:for-the-want-of-a-slash.org][For the want of a slash]]
+  - [[file:javascript-primes.org][Javascript primes]]
+  - [[file:gaussian-prime-spirals.org][Gaussian prime spirals]]
+
+* To Do                                                            :noexport:
