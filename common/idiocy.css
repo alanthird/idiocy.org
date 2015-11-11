@@ -1,0 +1,40 @@
+body {
+    font-family: "Avenir Next", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
+
+    margin: 0;
+}
+
+#content {
+    width: 65ex;
+    margin-left: 15%;
+}
+
+#footnotes {
+    padding-left: 10%;
+    margin-top: 2em;
+    background-color: #CCC;
+}
+
+pre.src {
+    color: #f6f3e8;
+    background-color: #242424;
+}
+
+figure img {
+    max-width: 90%;
+}
+
+figure {
+    text-align: center;
+}
+
+.status {
+    color: #CCC;
+    background-color: #010;
+
+    width: 65ex;
+    margin-left: 15%;
+    padding: 0.5em;
+
+    text-align: right;
+}

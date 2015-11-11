@@ -23,11 +23,14 @@
          :section-numbers nil
          :with-sub-superscript nil
          :with-todo-keywords nil
-         :with-author nil
+         :with-author t
+         :with-email t
          :with-creator nil
+         :html-doctype "html5"
+         :html-html5-fancy t
          :html-preamble "idiocy.org"
-         :html-postamble nil
-         ;;:style "This is raw html for stylesheet <link>'s"
+         ;;:html-postamble nil
+         :html-head "<link rel='stylesheet' type='text/css' href='common/idiocy.css'>"
          :with-timestamp t
          :exclude-tags ("noexport" "todo"))
         ("blog-static"
@@ -36,12 +39,17 @@
          ;;:publishing-directory "/ssh:alan@idiocy.org:/www/idiocy.org/htdocs/"
          :publishing-directory "./build"
          :recursive t
+         :exclude "./build"
          :publishing-function org-publish-attachment)))
+
+; (defun my-org-html-postamble (plist)
+;  (format "Last update: %s" (format-time-string "%d %b %Y")))
+; (setq org-html-postamble 'my-org-html-postamble)
 
 (org-publish-current-project)
 #+end_src
 
 #+RESULTS:
-| blog-content | :base-directory | . | :base-extension | org  | :publishing-directory | ./build | :recursive | t    | :publishing-function | (org-html-publish-to-html) | :with-tags | nil | :headline-levels      |       4 | :with-toc  | nil | :section-numbers     | nil                    | :with-sub-superscript | nil | :with-todo-keywords | nil | :with-author | nil | :with-creator | nil | :html-preamble | idiocy.org | :html-postamble | nil | :with-timestamp | t | :exclude-tags | (noexport todo) |
-| blog-static  | :base-directory | . | :base-extension | css\ | js\                   | png\    | jpg\       | gif\ | svg\                 | pdf\                       | mp3\       | ogg | :publishing-directory | ./build | :recursive | t   | :publishing-function | org-publish-attachment |                       |     |                     |     |              |     |               |     |                |            |                 |     |                 |   |               |                 |
+| blog-content | :base-directory | . | :base-extension | org  | :publishing-directory | ./build | :recursive | t    | :publishing-function | (org-html-publish-to-html) | :with-tags | nil | :headline-levels      |       4 | :with-toc  | nil | :section-numbers | nil     | :with-sub-superscript | nil                    | :with-todo-keywords | nil | :with-author | t | :with-email | t | :with-creator | nil | :html-doctype | html5 | :html-html5-fancy | t | :html-preamble | idiocy.org | :html-head | <link rel='stylesheet' type='text/css' href='common/idiocy.css'> | :with-timestamp | t | :exclude-tags | (noexport todo) |
+| blog-static  | :base-directory | . | :base-extension | css\ | js\                   | png\    | jpg\       | gif\ | svg\                 | pdf\                       | mp3\       | ogg | :publishing-directory | ./build | :recursive | t   | :exclude         | ./build | :publishing-function  | org-publish-attachment |                     |     |              |   |             |   |               |     |               |       |                   |   |                |            |            |                                                                  |                 |   |               |                 |
 

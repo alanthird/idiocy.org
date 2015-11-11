@@ -3,7 +3,7 @@ Last week at work we had a minor issue with our public website. We're
 using Drupal with a MySQL backend and =mysqldump= for backups which
 we're then compressing, and, in an act of idiocy, are storing on the
 same drive. We hadn't run into any problems previously because the
-database is supposed to be *significantly* smaller than the disk and
+database is supposed to be /significantly/ smaller than the disk and
 always has been[fn:: There's some history to this setup, but this is
 the current state of things.].
 
@@ -62,7 +62,7 @@ logfiles from Tuesday and Wednesday. We rotate them when they reach
 five megabytes, and rarely get through more than two or three in a
 day. (There’s a Varnish caching proxy in front of the web server that
 catches most requests, so the traffic reaching the back-end is,
-generally, fairly low.) We had about *thirty* for these two days.
+generally, fairly low.) We had about /thirty/ for these two days.
 Something was clearly not right.
 
 * The logs

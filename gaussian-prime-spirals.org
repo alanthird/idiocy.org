@@ -16,7 +16,7 @@ convoluted. Basically it boils down to:
 Or:
 
 - the real and imaginary parts squared and added together must be a
-  prime *not* of the form \(4n+3\).
+  prime /not/ of the form \(4n+3\).
 
 A prime of the form \(4n+3\) simply means that if you subtract three
 and divide by four the resulting number should be an integer.
@@ -99,7 +99,13 @@ Some numbers to try:
 - \(1+63i\)
 
 
-- Note :: The script above generates the spiral and displays it in the browser, but it can take quite a long time if the spiral is large, for example **232+277i**. My intention was to include a corner count that updated as the spiral was generated so you could tell it was actually doing something, but battling the CSS on this page has put me off for the time being. I'll try and add it later.
+- Note :: The script above generates the spiral and displays it in the
+          browser, but it can take quite a long time if the spiral is
+          large, for example \(232+277i\). My intention was to include
+          a corner count that updated as the spiral was generated so
+          you could tell it was actually doing something, but battling
+          the CSS on this page has put me off for the time being. I'll
+          try and add it later.
 
 For more information see:
 
