@@ -2,6 +2,7 @@ body {
     font-family: "Avenir Next", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
 
     margin: 0;
+    text-align: justify;
 }
 
 #content {
@@ -13,6 +14,17 @@ body {
     padding-left: 10%;
     margin-top: 2em;
     background-color: #CCC;
+}
+
+
+a {
+    color: #666;
+    text-decoration: underline;
+}
+
+a:hover {
+    color: #000;
+    text-decoration: none;
 }
 
 pre.src {
@@ -28,13 +40,23 @@ figure {
     text-align: center;
 }
 
-.status {
+div.status {
     color: #CCC;
-    background-color: #010;
+    background-color: #111;
 
     width: 65ex;
     margin-left: 15%;
     padding: 0.5em;
+}
 
+div.status#postamble {
     text-align: right;
+}
+
+div.status a {
+    color: #888;
+}
+
+div.status a:hover {
+    color: #FFF
 }

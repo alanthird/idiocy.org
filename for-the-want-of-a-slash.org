@@ -1,4 +1,5 @@
 #+title: For the want of a slash
+#+date: 17th July 2015
 Last week at work we had a minor issue with our public website. We're
 using Drupal with a MySQL backend and =mysqldump= for backups which
 we're then compressing, and, in an act of idiocy, are storing on the

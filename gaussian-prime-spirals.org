@@ -1,4 +1,5 @@
 #+TITLE: Gaussian prime spirals
+#+DATE: 21st September 2014
 Gaussian integers are complex numbers where both the real and
 imaginary parts are integers. So \(3+7i\) is a Gaussian integer, but
 \(1/2+3i\) isn't.

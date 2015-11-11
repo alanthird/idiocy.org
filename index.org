@@ -1,4 +1,4 @@
-#+TITLE: site index
+#+TITLE:
 * Articles
   - [[file:for-the-want-of-a-slash.org][For the want of a slash]]
   - [[file:javascript-primes.org][Javascript primes]]
@@ -6,7 +6,7 @@
 
 * To Do                                                            :noexport:
 * export                                                           :noexport:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :results output silent
 (setq org-publish-project-alist
       '(("idiocy.org"
          :components ("blog-content" "blog-static"))
@@ -28,7 +28,7 @@
          :with-creator nil
          :html-doctype "html5"
          :html-html5-fancy t
-         :html-preamble "idiocy.org"
+         :html-preamble "<a href='/'><img src='common/logo.svg' alt='idiocy.org'></a>"
          ;;:html-postamble nil
          :html-head "<link rel='stylesheet' type='text/css' href='common/idiocy.css'>"
          :with-timestamp t
@@ -48,8 +48,3 @@
 
 (org-publish-current-project)
 #+end_src
-
-#+RESULTS:
-| blog-content | :base-directory | . | :base-extension | org  | :publishing-directory | ./build | :recursive | t    | :publishing-function | (org-html-publish-to-html) | :with-tags | nil | :headline-levels      |       4 | :with-toc  | nil | :section-numbers | nil     | :with-sub-superscript | nil                    | :with-todo-keywords | nil | :with-author | t | :with-email | t | :with-creator | nil | :html-doctype | html5 | :html-html5-fancy | t | :html-preamble | idiocy.org | :html-head | <link rel='stylesheet' type='text/css' href='common/idiocy.css'> | :with-timestamp | t | :exclude-tags | (noexport todo) |
-| blog-static  | :base-directory | . | :base-extension | css\ | js\                   | png\    | jpg\       | gif\ | svg\                 | pdf\                       | mp3\       | ogg | :publishing-directory | ./build | :recursive | t   | :exclude         | ./build | :publishing-function  | org-publish-attachment |                     |     |              |   |             |   |               |     |               |       |                   |   |                |            |            |                                                                  |                 |   |               |                 |
-
