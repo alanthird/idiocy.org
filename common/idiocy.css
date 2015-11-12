@@ -3,6 +3,8 @@ body {
 
     margin: 0;
     text-align: justify;
+
+    font-size: 1.8vw;
 }
 
 #content {
@@ -50,6 +52,10 @@ div.status {
     margin-left: 15%;
 
     overflow: auto;
+}
+
+div.status#preamble img {
+    height: 5em;
 }
 
 div.status#postamble {

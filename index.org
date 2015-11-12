@@ -5,6 +5,8 @@
   - [[file:gaussian-prime-spirals.org][Gaussian prime spirals]]
 
 * To Do                                                            :noexport:
+** TODO Make css responsive
+** TODO write CV
 * export                                                           :noexport:
 #+begin_src emacs-lisp :noweb yes :results output silent
 (setq org-publish-project-alist
