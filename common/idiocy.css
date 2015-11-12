@@ -14,6 +14,8 @@ body {
     padding-left: 10%;
     margin-top: 2em;
     background-color: #CCC;
+
+    text-align: left;
 }
 
 
@@ -46,7 +48,8 @@ div.status {
 
     width: 65ex;
     margin-left: 15%;
-    padding: 0.5em;
+
+    overflow: auto;
 }
 
 div.status#postamble {
@@ -59,4 +62,23 @@ div.status a {
 
 div.status a:hover {
     color: #FFF
+}
+
+div.status img {
+    margin: 0.5em;
+}
+
+div.status table {
+    margin-left: auto;
+    margin-right: 0.5em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+div.status th:after {
+    content: ": ";
+}
+
+div.status td {
+    text-align: left;
 }

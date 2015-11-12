@@ -6,7 +6,7 @@
 
 * To Do                                                            :noexport:
 * export                                                           :noexport:
-#+begin_src emacs-lisp :results output silent
+#+begin_src emacs-lisp :noweb yes :results output silent
 (setq org-publish-project-alist
       '(("idiocy.org"
          :components ("blog-content" "blog-static"))
@@ -16,6 +16,7 @@
          ;;:publishing-directory "/ssh:alan@idiocy.org:/www/idiocy.org/htdocs/"
          :publishing-directory "./build"
          :recursive t
+         :exclude "build"
          :publishing-function (org-html-publish-to-html)
          :with-tags nil
          :headline-levels 4             ; Just the default for this project.
@@ -23,15 +24,14 @@
          :section-numbers nil
          :with-sub-superscript nil
          :with-todo-keywords nil
-         :with-author t
-         :with-email t
-         :with-creator nil
          :html-doctype "html5"
          :html-html5-fancy t
-         :html-preamble "<a href='/'><img src='common/logo.svg' alt='idiocy.org'></a>"
-         ;;:html-postamble nil
+         ;; noweb codes have funny rules about prefixes
+         :html-preamble "\
+                         <<header>>"
+         :html-postamble "\
+                          <<footer>>"
          :html-head "<link rel='stylesheet' type='text/css' href='common/idiocy.css'>"
-         :with-timestamp t
          :exclude-tags ("noexport" "todo"))
         ("blog-static"
          :base-directory "."
@@ -39,12 +39,29 @@
          ;;:publishing-directory "/ssh:alan@idiocy.org:/www/idiocy.org/htdocs/"
          :publishing-directory "./build"
          :recursive t
-         :exclude "./build"
+         :exclude "build"
          :publishing-function org-publish-attachment)))
-
-; (defun my-org-html-postamble (plist)
-;  (format "Last update: %s" (format-time-string "%d %b %Y")))
-; (setq org-html-postamble 'my-org-html-postamble)
 
 (org-publish-current-project)
 #+end_src
+
+#+NAME: header
+#+BEGIN_SRC html :exports none
+  <a href='/'>
+    <img src='common/logo.svg' alt='idiocy.org'>
+  </a>
+#+END_SRC
+  
+#+NAME: footer
+#+BEGIN_SRC html :exports none
+  <table>
+    <tr>
+      <th>t</th>
+      <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+    </tr>
+    <tr>
+      <th>e</th>
+      <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+    </tr>
+  </table>
+#+END_SRC
