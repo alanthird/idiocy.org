@@ -1,15 +1,22 @@
 body {
     font-family: "Avenir Next", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
 
-    margin: 0;
     text-align: justify;
+    font-size: 13px;
 
-    font-size: 1.8vw;
+    margin: 0;
 }
 
 #content {
-    width: 65ex;
-    margin-left: 15%;
+    max-width: 65ex;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media screen and (min-width: 720px) {
+    body {
+        font-size: 1.8vw;
+    }
 }
 
 #footnotes {
@@ -47,11 +54,11 @@ figure {
 div.status {
     color: #CCC;
     background-color: #111;
-
-    width: 65ex;
-    margin-left: 15%;
-
     overflow: auto;
+    
+    max-width: 65ex;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 div.status#preamble img {
