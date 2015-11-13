@@ -9,42 +9,50 @@
 ** TODO write CV
 * export                                                           :noexport:
 #+begin_src emacs-lisp :noweb yes :results output silent
-(setq org-publish-project-alist
-      '(("idiocy.org"
-         :components ("blog-content" "blog-static"))
-        ("blog-content"
-         :base-directory "."
-         :base-extension "org"
-         ;;:publishing-directory "/ssh:alan@idiocy.org:/www/idiocy.org/htdocs/"
-         :publishing-directory "./build"
-         :recursive t
-         :exclude "build"
-         :publishing-function (org-html-publish-to-html)
-         :with-tags nil
-         :headline-levels 4             ; Just the default for this project.
-         :with-toc nil
-         :section-numbers nil
-         :with-sub-superscript nil
-         :with-todo-keywords nil
-         :html-doctype "html5"
-         :html-html5-fancy t
-         ;; noweb codes have funny rules about prefixes
-         :html-preamble "\
-                         <<header>>"
-         :html-postamble "\
-                          <<footer>>"
-         :html-head "<link rel='stylesheet' type='text/css' href='common/idiocy.css'>"
-         :exclude-tags ("noexport" "todo"))
-        ("blog-static"
-         :base-directory "."
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|svg\\|pdf\\|mp3\\|ogg"
-         ;;:publishing-directory "/ssh:alan@idiocy.org:/www/idiocy.org/htdocs/"
-         :publishing-directory "./build"
-         :recursive t
-         :exclude "build"
-         :publishing-function org-publish-attachment)))
+  (setq org-publish-project-alist
+        '(("idiocy.org"
+           :components ("blog-content" "blog-static"))
+          ("blog-content"
+           :base-directory "."
+           :base-extension "org"
+           :publishing-directory "/ssh:alan@idiocy.org:/web/idiocy.org/htdocs/"
+           ;;:publishing-directory "./build"
+           :recursive t
+           :exclude "build"
+           :publishing-function (org-html-publish-to-html)
 
-(org-publish-current-project)
+           :with-tags nil
+           :headline-levels 4             ; Just the default for this project.
+           :with-toc nil
+           :section-numbers nil
+           :with-sub-superscript nil
+           :with-todo-keywords nil
+           :html-doctype "html5"
+           :html-html5-fancy t
+           :html-head-include-scripts nil
+           :html-head-include-default-style nil
+           
+           ;; noweb codes have funny rules about prefixes
+           :html-preamble "\
+                           <<header>>"
+           :html-postamble "\
+                            <<footer>>"
+           :html-head "<link rel='stylesheet' type='text/css' href='common/idiocy.css'>"
+           :html-head-extra "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+           :exclude-tags ("noexport" "todo"))
+          ("blog-static"
+           :base-directory "."
+           :base-extension "css\\|js\\|png\\|jpg\\|gif\\|svg\\|pdf\\|mp3\\|ogg"
+           :publishing-directory "/ssh:alan@idiocy.org:/web/idiocy.org/htdocs/"
+           ;;:publishing-directory "./build"
+           :recursive t
+           :exclude "build"
+           :publishing-function org-publish-attachment)))
+
+  (setf org-html-mathjax-template "\
+                                   <<mathjax>>")
+
+  (org-publish-current-project)
 #+end_src
 
 #+NAME: header
@@ -66,4 +74,17 @@
       <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
     </tr>
   </table>
+#+END_SRC
+
+#+NAME: mathjax
+#+BEGIN_SRC html :exports none
+  <script type='text/x-mathjax-config'>
+    MathJax.Hub.Config({
+      'SVG': {
+        font: 'Latin-Modern'
+      }
+    });
+  </script>
+  <script type='text/javascript'
+          src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG-full'></script>
 #+END_SRC

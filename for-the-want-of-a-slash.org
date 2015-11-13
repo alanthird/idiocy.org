@@ -71,7 +71,9 @@ Something was clearly not right.
 The logs were full of entries with extremely long paths, and they
 seemed to consist of repeating segments, like:
 
-=/news/2015/apr/sites/all/modules/fwia/css/sites/all/modules/fwia/css/sites/all/modules/fwia/css/fwia.png=
+#+BEGIN_EXAMPLE
+/news/2015/apr/sites/all/modules/fwia/css/sites/all/modules/fwia/css/sites/all/modules/fwia/css/fwia.png
+#+END_EXAMPLE
 
 There were thousands of them and they all seemed to come from one
 search engine optimisation web crawler. I don't know why it was
@@ -92,8 +94,12 @@ looking in =/news/2015/apr/sites/all/modules/fwia/css/=. For some
 reason the pages under =/news= handle any extra data in the path by
 ignoring it and displaying the first working URL. This meant that the
 site displayed =/news/2015/apr/sites/all/modules/fwia/css/= exactly
-the same as =/news/2015/apr=, and the broken image URL was
-=/news/2015/apr/sites/all/modules/fwia/css/sites/all/modules/fwia/css/fwia.png=,
+the same as =/news/2015/apr=, and the broken image URL was:
+
+#+begin_example
+/news/2015/apr/sites/all/modules/fwia/css/sites/all/modules/fwia/css/fwia.png
+#+end_example
+
 which also happily displayed the same, along with it's own broken
 image URL.
 
