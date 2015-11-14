@@ -60,7 +60,7 @@ pre.src {
     padding-top: 1.2em;
     color: #f6f3e8;
     background-color: #242424;
-    overflow: scroll;
+    overflow: auto;
 }
 pre.src:before {
     display: none;

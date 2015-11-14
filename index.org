@@ -5,8 +5,11 @@
   - [[file:gaussian-prime-spirals.org][Gaussian prime spirals]]
 
 * To Do                                                            :noexport:
-** TODO Make css responsive
+** DONE Make css responsive
+   CLOSED: [2015-11-14 Sat 00:02]
 ** TODO write CV
+** TODO Write about Eratosthenes' seive
+   Begun: [[return-to-javascript-primes][Return to the planet of the Javascript Primes]]
 * export                                                           :noexport:
 #+begin_src emacs-lisp :noweb yes :results output silent
   (setq org-publish-project-alist
