@@ -57,7 +57,7 @@ ie. all the prime numbers under twenty-one.
 * Solve it
 
 Implementation is rather straight‐forward. We create an array of a set
-size and step through following the algorithm outlined above.
+size and step through the algorithm outlined above.
 
 #+begin_src js :exports code
   function seive(primeList) {
@@ -87,13 +87,17 @@ size and step through following the algorithm outlined above.
 #+end_src
 
 Now we can just do a simple, very fast, look‐up on the array to find
-out if a number is a prime or not. The problem with this method is
-that we can only check numbers from within a range that we calculate
-ahead of time. It’s also rather inefficient if we just want to check
-one, very large, number as we’d potentially have to calculate every
-prime up to that number.
+out if a number is a prime or not.
 
-Large look‐up tables could also use a significant amount of memory.
+The problem with this method is that we have to decide ahead of time
+what the largest number we can check is; if we want to increase our
+look‐up table range, we have to go back to the beginning and start
+again. It’s also rather inefficient if we just want to check one, very
+large, number as we’d potentially have to calculate every prime up to
+that number.
+
+Large look‐up tables could also use a significant amount of memory and
+take a long time to create.
 
 * Save it
 
@@ -272,6 +276,6 @@ Try it out:
   </script>
 #+end_html
 
-Because the Miller‐Rabin function squares numbers, you can’t
-safely check numbers higher than \(2^{26}\). This is caused by the
-fact javascript uses sixty‐four bit floats for the number type.
+Because the Miller‐Rabin function squares numbers, and javascript uses
+sixty‐four bit floats (fifty‐three bit precision), you can’t safely
+check numbers higher than \(2^{26}\).
