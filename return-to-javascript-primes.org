@@ -9,7 +9,7 @@ Eratosthenes’ Seive in Javascript.
 #+caption: Eratosthenes
 [[file:return-to-javascript-primes/Eratosthenes.jpg]]
 
-Eratosthenes was an over-achieving Greek polymath. Born in Cyrene in
+Eratosthenes was an over‐achieving Greek polymath. Born in Cyrene in
 Greek north Africa around 276ʙᴄ, he, among other things, invented
 geography, accurately measured the circumference of the Earth and gave
 us the leap year. He also came up with his eponymous seive: a quick
@@ -17,7 +17,7 @@ way of finding prime numbers.
 
 * Seive it
 
-The seive works by removing composite (non-prime) numbers from the set
+The seive works by removing composite (non‐prime) numbers from the set
 of the natural numbers by /seiving/ out the multiples of each prime,
 one prime at a time.
 
@@ -47,16 +47,16 @@ Five is the next number still in the list, but we don’t have any
 numbers left that are divisble by it. In fact, because \(5^2\) is
 greater than our biggest number, twenty, we know that we can stop
 looking for primes. If our numbers continued up further we would
-remove twenty-five, thirty-five, and so on, then move onto multiples
+remove twenty‐five, thirty‐five, and so on, then move onto multiples
 of seven. As it stands, our list is now:
 
 \[\{2, 3, 5, 7, 11, 13, 17, 19\}\]
 
-or, all the prime numbers under twenty-one.
+ie. all the prime numbers under twenty-one.
 
 * Solve it
 
-Implementation is rather straight-forward. We create an array of a set
+Implementation is rather straight‐forward. We create an array of a set
 size and step through following the algorithm outlined above.
 
 #+begin_src js :exports code
@@ -67,8 +67,8 @@ size and step through following the algorithm outlined above.
         
         for (var n = p*2 ; n < primeList.length ; n = n+p) {
           // increase n by p each time so we step through each integer
-          // that can be divided by p, and if it's divisible by p, then
-          // it's not prime
+          // that can be divided by p, and, of course, if it's divisible
+          // by p, then it's not prime
           primeList[n] = false;
         }
       }
@@ -81,7 +81,196 @@ size and step through following the algorithm outlined above.
                    true, true, true, true, true, true, true, true,
                    true, true, true, true];
 
-  return seive(primeList);
+  primeList = seive(primeList);
 
-  /* 0 → false, 1 → false, 2 → true, 3 → true, 4 → false, 5 → true, &c. */
+  // 0 → false, 1 → false, 2 → true, 3 → true, 4 → false, 5 → true, &c.
 #+end_src
+
+Now we can just do a simple, very fast, look‐up on the array to find
+out if a number is a prime or not. The problem with this method is
+that we can only check numbers from within a range that we calculate
+ahead of time. It’s also rather inefficient if we just want to check
+one, very large, number as we’d potentially have to calculate every
+prime up to that number.
+
+Large look‐up tables could also use a significant amount of memory.
+
+* Save it
+
+The solution is to use a hybrid approach. For small numbers we
+generate a look‐up table, and for larger numbers we use something like
+the [[https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test][Miller‐Rabin]] algorithm.
+
+#+name: miller-rabin
+#+begin_src js :exports none
+  function millerRabin(n) {
+    function isOdd(n) {
+      return n%2===1;
+    }
+
+    function rnd(floor, ceil) {
+      return floor+Math.floor(Math.random()*(ceil-floor));
+    }
+
+    // A custom exponentiation function. Raising numbers to large
+    // powers can very quickly take javascript's numbers out of their
+    // linear range, but we only need the modulus of the result, and
+    // modular arithmetic allows us to cheat.
+    function expmod(base, exponent, mod) {
+      var result=1;
+
+      while (exponent > 0) {
+        if (isOdd(exponent)) {
+          result=result*base%mod;
+          exponent--;
+        }
+
+        base=base*base%mod;
+        exponent=exponent/2;
+      }
+      return result;
+    }
+
+    // This check finds whether the number is composite, if it finds
+    // it fails to find the number composite it doesn't mean it's
+    // definitely prime. It gets run several times for each number we
+    // want to check so as to reduce the chances we give a false
+    // positive.
+    function test(q, s) {
+      var a=rnd(1, n-1);
+      var apowq=expmod(a, q, n);
+
+      if (apowq===1 || apowq===n-1) return true;
+
+      for (var i=1 ; i < s ; i++) {
+        var t=expmod(apowq, 1<<i, n);
+
+        if (t===n-1 || t===1) {
+          return true;
+        }
+      }
+      
+      return false;
+    }
+
+    for (var q=n-1, s=0 ; !isOdd(q) ; q/=2, s++);
+
+    // Check up to twenty times
+    for (var i=0, t=true ; i<20 && t ; i++)
+      t=t && test(q, s);
+
+    return t;
+  }
+#+end_src
+
+#+begin_src js :exports code :tangle return-to-javascript-primes/prime.js :noweb yes
+  var P = (function(lookupSize) {
+    var lookup = null;
+    
+    <<miller-rabin>>
+
+    // initialise the array
+    function initLookup(size) {
+      l = Array(size);
+      l[0] = false;
+      l[1] = false;
+
+      for (var i = 2 ; i < size ; i++) {
+        l[i] = true;
+      }
+
+      return l;
+    }
+
+    // Seive out the composites
+    function seive(primeList) {
+      for (var p = 2 ; p < primeList.length ; p++) {
+        if (primeList[p]) {
+          for (var n = p*2 ; n < primeList.length ; n = n+p) {
+            primeList[n] = false;
+          }
+        }
+      }
+      return primeList;
+    }
+
+    // Test divide against some low numbers
+    function divisionTest(n) {
+      var primes = [2, 3, 5, 7];
+      for (var i = 0 ; i < primes.length ; i++) {
+        if (n%primes[i] === 0) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    function isPrime(n) {
+      // Generate lookup when it's first required
+      if (lookup === null) {
+        lookup = seive(initLookup(lookupSize));
+      }
+      
+      // For our purposes negative primes are the same as positive
+      // primes
+      if (n < 0) {
+        n = -n;
+      }
+
+      if (n < lookupSize) {
+        return lookup[n];
+      }
+
+      // If the division test doesn't detect a composite, use
+      // miller-rabin
+      if (divisionTest(n)) {
+        return millerRabin(n);
+      }
+
+      return false;
+    }
+
+    return {
+      isPrime: isPrime
+    };
+  })(500000); // Lookup size is half a million
+#+end_src
+
+Try it out:
+
+#+begin_src js :exports none :tangle return-to-javascript-primes/prime.js
+  $("#testButton").on("click", check);
+  $("#testNum").on("keypress", function (event) {
+    if(event.which === 13){
+      check();
+    }
+  });
+
+  function check() {
+    var n = $("#testNum").val();
+    
+    if (P.isPrime(n)) {
+      $("#result").html(n+" is a prime! :D");
+    }
+    else {
+      $("#result").html(n+" isn't a prime :(");
+    }
+  }
+#+end_src
+
+#+begin_html
+  <input type="number" id="testNum" value="137">
+  <input type="button" id="testButton" value="is it prime?">
+  <span id="result"></span>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+  <script type="text/javascript" src="return-to-javascript-primes/prime.js"></script>
+
+  <script type="text/javascript">
+  </script>
+#+end_html
+
+Because the Miller‐Rabin function squares numbers, you can’t
+safely check numbers higher than \(2^{26}\). This is caused by the
+fact javascript uses sixty‐four bit floats for the number type.
