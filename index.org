@@ -37,8 +37,8 @@
                            <<header>>"
            :html-postamble "\
                             <<footer>>"
-           :html-head "<link rel='stylesheet' type='text/css' href='common/idiocy.css'>"
-           :html-head-extra "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+           :html-head "\
+                       <<head>>"
            :exclude-tags ("noexport" "todo"))
           ("blog-static"
            :base-directory "."
@@ -56,28 +56,32 @@
 #+end_src
 
 #+NAME: header
-#+BEGIN_SRC html :exports none
+#+BEGIN_SRC web :exports none
   <a href='/'>
     <img src='common/logo.svg' alt='idiocy.org'>
   </a>
 #+END_SRC
   
 #+NAME: footer
-#+BEGIN_SRC html :exports none
+#+BEGIN_SRC web :exports none
   <table>
-    <tr>
-      <th>t</th>
-      <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
-    </tr>
-    <tr>
-      <th>e</th>
-      <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
-    </tr>
+      <tr>
+          <th>t</th>
+          <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+      </tr>
+      <tr>
+          <th>g</th>
+          <td><a href='https://github.com/alanthird'>alanthird</a></td>
+      </tr>
+      <tr>
+          <th>e</th>
+          <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+      </tr>
   </table>
 #+END_SRC
 
 #+NAME: mathjax
-#+BEGIN_SRC html :exports none
+#+BEGIN_SRC web :exports none
   <script type='text/x-mathjax-config'>
     MathJax.Hub.Config({
       'SVG': {
@@ -87,4 +91,10 @@
   </script>
   <script type='text/javascript'
           src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG-full'></script>
+#+END_SRC
+
+#+NAME: head
+#+BEGIN_SRC web :exports none
+  <link rel='stylesheet' type='text/css' href='common/idiocy.css'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
 #+END_SRC
