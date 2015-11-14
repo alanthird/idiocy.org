@@ -1,81 +1,32 @@
-var F={
-  memoize: function(f) {
-    var cache=[];
-    
-    return function(arg) {
-      return (arg in cache) ? cache[arg] : cache[arg]=f(arg);
-    }
+P.isGaussianPrime = function(r, i) {
+  function isNaturalNum(n) {
+    return parseInt(n) === n && n >= 0;
   }
-};
-
-/* Prime number code. Javascript doesn't have any native way to
- * determine if a number is a prime number and there doesn't seem to
- * be a standard library for it so I'm rolling my own.
- */
-var P={
-  isPrime: F.memoize(function(n) {
-    function p(n) {
-      return {
-	v: n,
-	n: function() {
-	  for (n+=2 ; !P.isPrime(n) ; n+=2);
-	  return p(n);
-	}
-      }
-    }
-
-    n=Math.abs(n);
-
-    if (n===2) {
-      return true;
-    }
-    if (n < 2 || n%2 === 0) {
-      return false;
-    }
-
-    var pr=p(3);
-
-    do {
-      if (pr.v * pr.v > n) {
-	return true;
-      }
-      if (n%pr.v===0) {
-	return false;
-      }
-    }
-    while (pr=pr.n());
-  }),
-
-  isGaussianPrime: function(r, i) {
-    function isNaturalNum(n) {
-      return parseInt(n) === n && n >= 0;
-    }
-
-    function is4n3(n) {
-      return isNaturalNum((n-3)/4);
-    }
-
-    function is4n3Prime(n) {
-      return is4n3(n) && P.isPrime(n);
-    }
-
-    function isNon4n3Prime(n) {
-      return !is4n3(n) && P.isPrime(n);
-    }
-
-    function sumSquares(a, b) {
-      return a*a+b*b;
-    }
-
-    if (r===0) {
-      return is4n3Prime(i);
-    }
-    if (i===0) {
-      return is4n3Prime(r);
-    }
-    return isNon4n3Prime(sumSquares(r, i));
+  
+  function is4n3(n) {
+    return isNaturalNum((n-3)/4);
   }
-};
+  
+  function is4n3Prime(n) {
+    return is4n3(n) && P.isPrime(n);
+  }
+  
+  function isNon4n3Prime(n) {
+    return !is4n3(n) && P.isPrime(n);
+  }
+  
+  function sumSquares(a, b) {
+    return a*a+b*b;
+  }
+  
+  if (r===0) {
+    return is4n3Prime(i);
+  }
+  if (i===0) {
+    return is4n3Prime(r);
+  }
+  return isNon4n3Prime(sumSquares(r, i));
+}
 
 /* Simple complex number implementation. I don't need anything other
  * than adding and equality so I left it all out. */

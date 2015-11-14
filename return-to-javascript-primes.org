@@ -238,7 +238,7 @@ the [[https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test][Millerâ
 
 Try it out:
 
-#+begin_src js :exports none :tangle return-to-javascript-primes/prime.js
+#+begin_src js :exports none :tangle return-to-javascript-primes/test.js
   $("#testButton").on("click", check);
   $("#testNum").on("keypress", function (event) {
     if(event.which === 13){
@@ -266,6 +266,7 @@ Try it out:
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 
   <script type="text/javascript" src="return-to-javascript-primes/prime.js"></script>
+  <script type="text/javascript" src="return-to-javascript-primes/test.js"></script>
 
   <script type="text/javascript">
   </script>
