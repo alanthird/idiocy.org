@@ -1,8 +1,8 @@
 #+HTML_HEAD_EXTRA: <script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: {extensions: ["color.js"]}})</script>
-#+title: Return to the planet of the Javascript Primes
+#+title: Return to the planet of the JavaScript Primes
 
 I finally broke down and decided to do the sensible thing: implement
-Eratosthenes’ Seive in Javascript.
+Eratosthenes’ Sieve in JavaScript.
 
 * Eratosthenes of Cyrene
 
@@ -13,11 +13,11 @@ Eratosthenes was an over‐achieving Greek polymath. Born in Cyrene in
 Greek north Africa around 276ʙᴄ, he, among other things, invented the
 discipline of geography, accurately measured the circumference of the
 Earth and gave us the leap year. He also came up with his eponymous
-seive: a quick way of finding prime numbers.
+sieve: a quick way of finding prime numbers.
 
-* Seive it
+* Sieve it
 
-The seive works by removing composite (non‐prime) numbers from the set
+The sieve works by removing composite (non‐prime) numbers from the set
 of the natural numbers by /seiving/ out the multiples of each prime,
 one prime at a time.
 
@@ -34,17 +34,17 @@ it as a divisor:
  19, {\color{red}20}\}
 \]
 
-The next number that’s not already been seived out, three, must be a
+The next number that’s not already been sieved out, three, must be a
 prime, so we repeat the procedure for two and remove any multiples:
 
 \[\{2, 3, 5, 7, {\color{red}9}, 11, 13, {\color{red}15}, 17, 19\}\]
 
-Six, being divisble by two, is already removed, as are twelve and
+Six, being divisible by two, is already removed, as are twelve and
 eighteen, so the only numbers we remove this time are nine and
 fifteen.
 
 Five is the next number still in the list, but we don’t have any
-numbers left that are divisble by it. In fact, because \(5^2\) is
+numbers left that are divisible by it. In fact, because \(5^2\) is
 greater than our biggest number, twenty, we know that we can stop
 looking for primes. If our numbers continued up further we would
 remove twenty‐five, thirty, thirty‐five, and so on, then move onto
@@ -52,7 +52,7 @@ multiples of seven. As it stands, our list is now:
 
 \[\{2, 3, 5, 7, 11, 13, 17, 19\}\]
 
-ie. all the prime numbers under twenty-one.
+i.e. all the prime numbers under twenty-one.
 
 * Solve it
 
@@ -149,7 +149,7 @@ than \(2^{26}\) (67,108,864).].
       if (apowq===1 || apowq===n-1) return true;
 
       for (var i=1 ; i < s ; i++) {
-        var t=expmod(apowq, 1<<i, n);
+        var t=expmod(apowq, 1 << i, n);
 
         if (t===n-1 || t===1) {
           return true;
