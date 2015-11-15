@@ -1,6 +1,6 @@
 #+TITLE:
 * Articles
-  - [[return-to-javascript-primes][Return to the planet of the Javascript Primes]]
+  - [[file:return-to-javascript-primes.org][Return to the planet of the Javascript Primes]]
   - [[file:for-the-want-of-a-slash.org][For the want of a slash]]
   - [[file:javascript-primes.org][Javascript primes]]
   - [[file:gaussian-prime-spirals.org][Gaussian prime spirals]]
