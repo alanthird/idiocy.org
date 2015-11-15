@@ -30,11 +30,10 @@ var P = (function(lookupSize) {
       return result;
     }
   
-    // This check finds whether the number is composite, if it finds
-    // it fails to find the number composite it doesn't mean it's
-    // definitely prime. It gets run several times for each number we
-    // want to check so as to reduce the chances we give a false
-    // positive.
+    // This check finds whether the number is composite. If it fails
+    // to find the number composite it doesn't mean it's definitely
+    // prime. It gets run several times for each number we want to
+    // check so as to reduce the chances we give a false positive.
     function test(q, s) {
       var a=rnd(1, n-1);
       var apowq=expmod(a, q, n);
@@ -76,7 +75,7 @@ var P = (function(lookupSize) {
 
   // Seive out the composites
   function seive(primeList) {
-    for (var p = 2 ; p < primeList.length ; p++) {
+    for (var p = 2 ; p*p < primeList.length ; p++) {
       if (primeList[p]) {
         for (var n = p*2 ; n < primeList.length ; n = n+p) {
           primeList[n] = false;

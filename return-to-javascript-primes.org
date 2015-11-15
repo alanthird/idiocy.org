@@ -10,10 +10,10 @@ Eratosthenes’ Seive in Javascript.
 [[file:return-to-javascript-primes/Eratosthenes.jpg]]
 
 Eratosthenes was an over‐achieving Greek polymath. Born in Cyrene in
-Greek north Africa around 276ʙᴄ, he, among other things, invented
-geography, accurately measured the circumference of the Earth and gave
-us the leap year. He also came up with his eponymous seive: a quick
-way of finding prime numbers.
+Greek north Africa around 276ʙᴄ, he, among other things, invented the
+discipline of geography, accurately measured the circumference of the
+Earth and gave us the leap year. He also came up with his eponymous
+seive: a quick way of finding prime numbers.
 
 * Seive it
 
@@ -47,8 +47,8 @@ Five is the next number still in the list, but we don’t have any
 numbers left that are divisble by it. In fact, because \(5^2\) is
 greater than our biggest number, twenty, we know that we can stop
 looking for primes. If our numbers continued up further we would
-remove twenty‐five, thirty‐five, and so on, then move onto multiples
-of seven. As it stands, our list is now:
+remove twenty‐five, thirty, thirty‐five, and so on, then move onto
+multiples of seven. As it stands, our list is now:
 
 \[\{2, 3, 5, 7, 11, 13, 17, 19\}\]
 
@@ -103,7 +103,10 @@ take a long time to create.
 
 The solution is to use a hybrid approach. For small numbers we
 generate a look‐up table, and for larger numbers we use something like
-the [[https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test][Miller‐Rabin]] algorithm.
+the [[https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test][Miller‐Rabin]] algorithm[fn:: Because the Miller‐Rabin function
+squares numbers, and javascript uses sixty‐four bit floats
+(fifty‐three bit precision), you can’t safely check numbers larger
+than \(2^{26}\) (67,108,864).].
 
 #+name: miller-rabin
 #+begin_src js :exports none
@@ -135,11 +138,10 @@ the [[https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test][Miller�
       return result;
     }
 
-    // This check finds whether the number is composite, if it finds
-    // it fails to find the number composite it doesn't mean it's
-    // definitely prime. It gets run several times for each number we
-    // want to check so as to reduce the chances we give a false
-    // positive.
+    // This check finds whether the number is composite. If it fails
+    // to find the number composite it doesn't mean it's definitely
+    // prime. It gets run several times for each number we want to
+    // check so as to reduce the chances we give a false positive.
     function test(q, s) {
       var a=rnd(1, n-1);
       var apowq=expmod(a, q, n);
@@ -188,7 +190,7 @@ the [[https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test][Miller�
 
     // Seive out the composites
     function seive(primeList) {
-      for (var p = 2 ; p < primeList.length ; p++) {
+      for (var p = 2 ; p*p < primeList.length ; p++) {
         if (primeList[p]) {
           for (var n = p*2 ; n < primeList.length ; n = n+p) {
             primeList[n] = false;
@@ -276,6 +278,3 @@ Try it out:
   </script>
 #+end_html
 
-Because the Miller‐Rabin function squares numbers, and javascript uses
-sixty‐four bit floats (fifty‐three bit precision), you can’t safely
-check numbers higher than \(2^{26}\).
