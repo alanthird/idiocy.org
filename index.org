@@ -55,6 +55,7 @@
   (setf org-html-mathjax-template "\
                                    <<mathjax>>")
 
+  (setq org-html-use-unicode-chars t)
   (org-publish-current-project)
 #+end_src
 
