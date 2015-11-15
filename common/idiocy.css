@@ -114,6 +114,10 @@ figure {
     text-align: center;
 }
 
+.figure-number {
+    display: none;
+}
+
 div.status {
     color: #CCC;
     background-color: #111;
