@@ -1,5 +1,6 @@
 #+TITLE:
 * Articles
+  - [[return-to-javascript-primes][Return to the planet of the Javascript Primes]]
   - [[file:for-the-want-of-a-slash.org][For the want of a slash]]
   - [[file:javascript-primes.org][Javascript primes]]
   - [[file:gaussian-prime-spirals.org][Gaussian prime spirals]]
@@ -8,8 +9,9 @@
 ** DONE Make css responsive
    CLOSED: [2015-11-14 Sat 00:02]
 ** TODO write CV
-** TODO Write about Eratosthenes' seive
-   Begun: [[return-to-javascript-primes][Return to the planet of the Javascript Primes]]
+** DONE Write about Eratosthenes' seive
+   CLOSED: [2015-11-15 Sun 14:41]
+   Begun: 
 * export                                                           :noexport:
 #+begin_src emacs-lisp :noweb yes :results output silent
   (setq org-publish-project-alist

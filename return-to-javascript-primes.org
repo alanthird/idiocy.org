@@ -1,5 +1,6 @@
 #+HTML_HEAD_EXTRA: <script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: {extensions: ["color.js"]}})</script>
 #+title: Return to the planet of the JavaScript Primes
+#+DATE: 15th November 2015
 
 I finally broke down and decided to do the sensible thing: implement
 Eratosthenes’ Sieve in JavaScript.
