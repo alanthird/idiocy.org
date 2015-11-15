@@ -28,6 +28,8 @@ body {
     background-color: #CCC;
 
     text-align: left;
+
+    font-size: 0.65em;
 }
 
 .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
