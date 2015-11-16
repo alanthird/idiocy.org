@@ -2,13 +2,13 @@ body {
     font-family: "Avenir Next", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
 
     text-align: justify;
-    font-size: 15px;
+    font-size: 18px;
 
     margin-top: 0;
     margin-bottom: 0;
 }
 
-@media screen and (min-width: 1024px) {
+@media screen and (min-width: 1200px) {
     body {
         font-size: 1.5vw;
     }
