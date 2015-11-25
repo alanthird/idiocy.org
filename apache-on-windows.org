@@ -1,0 +1,23 @@
+#+TITLE Installing Apache HTTPD on Windows
+
+Installing Apache HTTPD on Windows is fairly straight‐forward, but
+I’ve never been a huge fan of the upgrade procedure on live systems:
+shutdown the service, uninstall it, install the new one, start the
+service and pray that nothing breaks.
+
+To cut down on the risk and downtime we came up with a slightly
+different way of handling it.
+
+Instead of downloading the installer, grab the zip version, I
+recommend the ones from [[http://www.apachelounge.com/]]. Remember to
+install any other requirements, like the VC redistributable package.
+
+#+BEGIN_SRC bat :exports code
+  cd d:\apache\2.4.17
+  bin\httpd.exe -k install -n "Apache 2.4.17"
+
+  bin\httpd.exe -t
+
+  cd d:\apache\2.4.10
+  bin\httpd.exe -k uninstall "Apache 2.4.10"
+#+END_SRC
