@@ -1,0 +1,139 @@
+#+TITLE: Music
+#+PROPERTY: cmdline -g
+
+* MacPherson's Rant
+** Music
+#+BEGIN_SRC abc :file music/macphersons-rant.svg
+  X: 1
+  T: Macpherson's Rant
+  C: James MacPherson
+  Z: Sean Logan
+  R: barndance
+  M: 4/4
+  L: 1/8
+  K: Dmix
+  |:D2|"G"G3 A B2 AG|"Am"B2 A2 A2 DE|"G"G3 A B2 AG|"Em"E6 DE|!
+       "G"G3 A B2 AG|"Am"B2 A2 A2 DE|"G"G3 B "Am"AG E2|"D"D6:|!
+  |:Bd|"G"d3 B cBAG|"Am"B2 A2 A2 Bd|"G"d3 B cBAG|"Em"E6 e2|!
+       "G"d3 B cBAG|"Am"B2 A2 A2 DE|"G"G3 B "Am"AG E2|"D"D6:|!
+#+END_SRC
+
+** Words
+#+begin_verse
+Fareweel, ye dungeons dark and strang, 
+The wretch's destinie! 
+MacPherson's time will no be lang
+On yonder gallows‐tree. 
+
+It was by a woman’s treacherous hand,
+That Ah was condemned tae dee;
+She stood abin a windae ledge,
+And a blanket she threw ower me.
+
+Sae rantingly, sae wantonly,
+Sae dauntingly gaed he; 
+He played a tune, an he danced aroon,
+Alow the gallows‐tree.
+
+O, what is death but parting breath? 
+On mony a bloody plain 
+Ah’ve dared his face, and in this place 
+Ah scorn him yet again! 
+
+So tak aff these bands fae roon mah hands,
+And gie tae me my sword;
+There’s no a man in aw Scotland
+But Ah’ll brave him at a word.
+
+Ah’ve lived a life of sturt and strife;
+Ah die by treacherie:
+It burns my heart that Ah must depart,
+And no avenged be.
+
+Now farewell licht, thou sunshine bricht, 
+An aw aneath the sky! 
+May coward shame distain his name, 
+The wretch that dares not die! 
+#+end_verse
+
+* Largo's Fairy Dance
+
+#+BEGIN_SRC abc :file music/largos-fairy-dance.svg
+  X: 1
+  T: The Fairy Dance
+  C: Nathaniel Gow
+  Z: Josh Kane
+  R: reel
+  M: 4/4
+  L: 1/8
+  K: Dmaj
+  |: f2fd f2fd | f2fd cdeg | f2fd gfed | cABc defg :|
+  |: a2af b2bf | g2ge a2ag | f2fd gfed |1 cABc defg :|2 cABc d3 ||
+#+END_SRC
+
+* The Bonnie Lass o Fyvie
+
+** Music
+
+ #+BEGIN_SRC abc :file music/bonnie-lass-o-fyvie.svg
+   X: 1
+   T: The Bonnie Lass O' Fyvie
+   Z: Red Menace
+   R: march
+   M: 4/4
+   L: 1/8
+   K: Dmaj
+   A|dd2e d3A|dd2e d3f|e2fg a2gf|e2A2 A3g|
+   f>efg a2 AA|dedB G2BB|A2d>d edcB|A2d2 d2 fe||
+   d>cde d2FG|A>BAF A3A|A2d>e fagf|e2A>B A3g|
+   f>efg a2 AA|d>edB G2BB|A2d>d edcB|A2d>d d3||
+ #+END_SRC
+
+** Words
+
+#+begin_verse
+There once was a troop o Irish dragoons
+Cam marching doon through Fyvie‐o
+And the captain’s fa’en in love wi a very bonnie lass
+And her name it was ca’d pretty Peggy‐o
+
+There’s many a bonnie lass in the Howe o Auchterless
+There’s many a bonnie lass in the Garioch‐o
+There’s many a bonnie Jean in the streets o Aiberdeen
+But the floower o them aw lies in Fyvie‐o
+
+O come doon the stair, Pretty Peggy, my dear
+Come doon the stair, Pretty Peggy‐o
+Come doon the stair, comb back your yellow hair
+Say a last farewell to your daddy‐o
+
+The colonel he cried, mount, boys, mount, boys, mount
+The captain, he cried, tarry‐o
+O tarry yet a while, just another day or twa
+Til I see if the bonnie lass will marry‐o
+
+Twas in the early morning, when we marched awa
+And O but the captain he was sorry‐o
+The drums they did beat o’er the bonnie braes o’ Gight
+And the band played the bonnie lass of Fyvie‐o
+
+Long ere we came to the Howe of Auchterless
+We had our captain to carry‐o
+And long ere we won into the streets of Aberdeen
+We had our captain to bury‐o
+
+Green grow the birks on bonnie Ythanside
+And low lie the lowlands of Fyvie‐o
+The captain’s name was Ned and he died for a maid
+He died for the bonnie lass of Fyvie‐o
+
+I never did intend a soldier’s lady for to be
+A soldier shall never enjoy me‐o
+I never did intend to gae tae a foreign land
+And I never will marry a soldier‐o
+
+It’s braw, aye it’s braw, a captain’s lady for to be
+And it’s braw to be a captain’s lady‐o
+It’s braw to ride around and to follow the camp
+And to ride when your captain he is ready‐o
+#+end_verse

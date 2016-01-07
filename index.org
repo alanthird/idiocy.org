@@ -36,7 +36,7 @@
            :html-html5-fancy t
            :html-head-include-scripts nil
            :html-head-include-default-style nil
-           
+         
            ;; noweb codes have funny rules about prefixes
            :html-preamble "\
                            <<header>>"
@@ -56,6 +56,10 @@
 
   (setf org-html-mathjax-template "\
                                    <<mathjax>>")
+
+  (defun my-org-confirm-babel-evaluate (lang body)
+    (not (string= lang "abc")))  ; don't ask for confirmation of abc blocks
+  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 
   (setq org-html-use-unicode-chars t)
   (org-publish-current-project)

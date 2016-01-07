@@ -107,15 +107,20 @@ dt { font-weight: bold; }
 
 
 figure img {
-    max-width: 90%;
+    max-width: 80%;
 }
 
 figure {
+    margin: 0;
     text-align: center;
 }
 
 .figure-number {
     display: none;
+}
+
+object {
+    max-width: 100%;
 }
 
 div.status {
