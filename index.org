@@ -26,7 +26,7 @@
           ("blog-content"
            :base-directory "."
            :base-extension "org"
-           :publishing-directory "/ssh:alan@idiocy.org:/web/idiocy.org/htdocs/"
+           :publishing-directory "/ssh:alan@colt.holly.idiocy.org:idiocy.org/public/"
            ;;:publishing-directory "./build"
            :recursive t
            :exclude "build"
@@ -54,7 +54,7 @@
           ("blog-static"
            :base-directory "."
            :base-extension "css\\|js\\|png\\|jpg\\|gif\\|svg\\|pdf\\|mp3\\|ogg"
-           :publishing-directory "/ssh:alan@idiocy.org:/web/idiocy.org/htdocs/"
+           :publishing-directory "/ssh:alan@colt.holly.idiocy.org:idiocy.org/public/"
            ;;:publishing-directory "./build"
            :recursive t
            :exclude "build"
