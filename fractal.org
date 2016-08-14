@@ -34,7 +34,7 @@
  ];
  
  var layers = _.map(layers, function(layer) {
-     layer.layer = L.tileLayer('http://fractal.idiocy.org/map/{layerName}/{z}/{y}/{x}',
+     layer.layer = L.tileLayer('https://idiocy.org/map/{layerName}/{z}/{y}/{x}',
                                _.defaults({layerName: layer.layerName}, layerAttrs));
      return layer;
  });

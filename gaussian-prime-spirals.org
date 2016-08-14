@@ -114,8 +114,8 @@ For more information see:
 - http://demonstrations.wolfram.com/GaussianPrimeSpirals/
 
 #+BEGIN_HTML
-<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
 <script src="return-to-javascript-primes/prime.js"></script>
 <script src="gaussian-prime-spirals/gaussian-spirals.js"></script>
 #+END_HTML
