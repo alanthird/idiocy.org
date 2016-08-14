@@ -1,0 +1,55 @@
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css"/>
+#+title: Mandelbrot explorer
+
+#+begin_html
+<style>
+  #map {
+    width: 90%;
+    height: 75vh;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+<div id="map"></div>
+<br>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js"></script>
+
+<script>
+ var layerURL = '/map/{layer}/{z}/{y}/{x}';
+ var layerAttrs = {
+     attribution: 'Image data &copy; Alan Third',
+     noWrap: true,
+     maxZoom: 45,
+     detectRetina: true,
+     crs: L.CRS.Simple
+ };
+
+ var layers = [
+     {name: "Flame", layerName: "flame"},
+     {name: "Blue-Green", layerName: "bluegreen"},
+     {name: "Beetlejuice", layerName: "beetlejuice"},
+     {name: "Psychedelic", layerName: "colour"}
+ ];
+ 
+ var layers = _.map(layers, function(layer) {
+     layer.layer = L.tileLayer('http://fractal.idiocy.org/map/{layerName}/{z}/{y}/{x}',
+                               _.defaults({layerName: layer.layerName}, layerAttrs));
+     return layer;
+ });
+
+ var map = L.map('map', {
+     layers: [layers[0].layer],
+     center: [0, 0],
+     zoom: 1
+ });
+ 
+ var baseLayers = _.reduce(layers, function(output, layer) {
+     output[layer.name]=layer.layer;
+     return output;
+ }, {});
+
+ L.control.layers(baseLayers).addTo(map);
+</script>
+#+end_html

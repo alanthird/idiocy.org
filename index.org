@@ -5,7 +5,13 @@
   - [[file:javascript-primes.org][Javascript primes]]
   - [[file:gaussian-prime-spirals.org][Gaussian prime spirals]]
 
+* Toys
+  - [[file:explorers.org][Explorer name generator]]
+  - [[file:fractal.org][Mandelbrot explorer]]
+
 * To Do                                                            :noexport:
+** TODO Write about Apache on Windows
+   [[file:apache-on-windows.org][Installing Apache HTTPD on Windows]]
 ** DONE Make css responsive
    CLOSED: [2015-11-14 Sat 00:02]
 ** TODO write CV

@@ -1,0 +1,66 @@
+#+title: Explorer names
+
+#+begin_src js :exports none :tangle explorers.js
+  var animals=[
+    "tiger", "bear", "lion", "wolf", "giraffe", "leopard", "panther",
+    "lynx", "jaguar", "penguin", "elephant", "hippo",
+    "octopus", "shark", "squid", "echidna", "hedgehog", "iguana",
+    "platypus", "clownfish", "eel", "caelocanth", "mammoth", "ape",
+    "monkey", "mandrill", "baboon", "gorilla", "wildcat", "walrus"
+  ];
+
+  var cooking=[
+    "grills", "roasts", "flambés", "toasts", "microwaves", "poaches",
+    "frys", "marinades", "stews", "barbecues", "broils", "sears",
+    "bakes", "boils", "blanches", "braises", "steams", "steeps",
+    "sautés", "smokes", "stir-frys"
+  ];
+
+  function go() {
+    function replaceI(word) {
+      return word.replace(/i/g, "y");
+    }
+
+    function generateName() {
+      var forename=_.sample(animals);
+      var surname=replaceI(_.sample((forename === "bear") ? _.without(cooking, "grills") : cooking));
+      return forename + " " + surname;
+    }
+
+    document.querySelector("#name span").innerHTML=generateName();
+  }
+
+  document.getElementById("go").addEventListener("click", go);
+  go();
+#+end_src
+
+* Your explorer name:
+
+#+begin_html
+<style>
+  #name {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 2em;
+
+    text-align: center;
+
+    border: solid black;
+  }
+
+  #name span {
+    vertical-align: middle;
+    text-transform: capitalize;
+  }
+</style>
+
+<div id="name">
+  <span></span>
+</div>
+<input type="submit" id="go" class="idioticSubmit" value="Generate new name"/>
+<br>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+<script type="text/javascript" src="explorers.js"></script>
+#+end_html
