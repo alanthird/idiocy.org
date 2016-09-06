@@ -1,5 +1,8 @@
 #+TITLE:
 * Articles
+  - Let’s go write a lisp
+    - [[file:lets-go-write-a-lisp/part-1.org][Part one]]
+    - [[file:lets-go-write-a-lisp/part-2.org][Part two]]
   - [[file:return-to-javascript-primes.org][Return to the planet of the Javascript Primes]]
   - [[file:for-the-want-of-a-slash.org][For the want of a slash]]
   - [[file:javascript-primes.org][Javascript primes]]
@@ -24,9 +27,9 @@
         '(("idiocy.org"
            :components ("blog-content" "blog-static"))
           ("blog-content"
-           :base-directory "."
+           :base-directory "~/Documents/idiocy.org"
            :base-extension "org"
-           :publishing-directory "/ssh:alan@colt.holly.idiocy.org:idiocy.org/public/"
+           :publishing-directory "/scp:alan@colt.holly.idiocy.org:idiocy.org/public/"
            ;;:publishing-directory "./build"
            :recursive t
            :exclude "build"
@@ -52,9 +55,9 @@
                        <<head>>"
            :exclude-tags ("noexport" "todo"))
           ("blog-static"
-           :base-directory "."
+           :base-directory "~/Documents/idiocy.org"
            :base-extension "css\\|js\\|png\\|jpg\\|gif\\|svg\\|pdf\\|mp3\\|ogg"
-           :publishing-directory "/ssh:alan@colt.holly.idiocy.org:idiocy.org/public/"
+           :publishing-directory "/scp:alan@colt.holly.idiocy.org:idiocy.org/public/"
            ;;:publishing-directory "./build"
            :recursive t
            :exclude "build"
@@ -74,7 +77,7 @@
 #+NAME: header
 #+BEGIN_SRC web :exports none
   <a href='/'>
-    <img src='common/logo.svg' alt='idiocy.org'>
+    <img src='/common/logo.svg' alt='idiocy.org'>
   </a>
 #+END_SRC
   
@@ -111,6 +114,6 @@
 
 #+NAME: head
 #+BEGIN_SRC web :exports none
-  <link rel='stylesheet' type='text/css' href='common/idiocy.css'>
+  <link rel='stylesheet' type='text/css' href='/common/idiocy.css'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
 #+END_SRC
