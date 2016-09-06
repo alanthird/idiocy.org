@@ -1,0 +1,548 @@
+#+TITLE: Let’s go write a Lisp ‐ part one
+#+DATE: 1st September 2016
+
+I’m going to write my own Lisp in JavaScript. To be honest, it’s not
+going to be a real lisp, we won’t have pairs (although we can fake
+them if we want) and we’ll be using JavaScript’s types and other
+bits and bobs. This type of interpreter is known as a [[https://en.wikipedia.org/wiki/Meta-circular_evaluator][meta‐circular
+evaluator]].
+
+* What do we need to do?
+There are five main parts to our Lisp:
+
+1. Lex
+2. Parse
+3. Apply
+4. Evaluate
+5. Some built‐in functions
+
+The lexer and parser could be combined, but I want to do them
+separately for simplicity’s sake.
+
+* The lexer
+A lexer basically just takes a string and cuts it up into the smallest
+bits we can use, which are called tokens. This means we need to work
+out what will count as a token, and how we can tell them apart. Since
+lisp is quite simple there aren’t too many bits.
+
+- Brackets :: Used to define lists: ( and ).
+- String :: Starts and ends with a double quote: "like this".
+- Number :: Starts with a number: 22.
+- Symbol :: Starts with any other character and can contain anything
+     but a closing bracket or white‐space.
+
+And they’re separated by any number of white‐space characters. A
+closing bracket always ends a list, even if it’s butted up against a
+preceding token.
+
+The simplest[fn:: Really, the simplest way is probably to use regular
+expressions, as lisp is simple enough for that to work, but that’s
+cheating.] way to handle this is a function we can call to return the
+next token, rather than splitting it up and creating an array of
+tokens. This makes it easy to write a recursive parser.
+
+#+NAME: lexer
+#+BEGIN_SRC js :exports none
+  function lexer(input) {
+    let pos = 0
+
+    /* A couple of functions to help us grab the characters. */
+    function next() {
+      if (pos < input.length) {
+        return input.charAt(pos++)
+      }
+      return null
+    }
+
+    function rewind() {
+      pos--
+    }
+
+    /* Return a string.
+     ,*
+     ,* Strings are special because they can contain pretty much anything
+     ,* except a double quote, so we can't break them on spaces. */
+    function string() {
+      let token = next()
+      let c
+
+      while ((c = next()) != null) {
+        if (c == '"') {
+          return token + c
+        }
+        // else
+        token = token + c
+      }
+
+      /* If we get this far then the string wasn't terminated. I'll let
+       ,* it slide this time. */
+      return token
+    }
+
+    /* I've called this symbol, but it's actually anything that's not a
+     ,* string or a bracket. */
+    function symbol() {
+      let token = ""
+      let c
+
+      while ((c = next()) != null) {
+        /* Check that the character isn't whitespace or a closing
+         ,* bracket. */
+        if (/[\s\)]/.test(c)) {
+          /* This character isn’t part of the token, so wind it back
+           ,* into the input. */
+          rewind()
+          return token
+        }
+        // else
+        token = token + c
+      }
+
+      /* Again, if we get here we've reached the end of the input. */
+      return token
+    }
+
+    /* This is the main function. */
+    return function() {
+      let c
+
+      while ((c = next()) != null) {
+        if (/\s/.test(c)) {
+          /* Whitespace, we don't care about this, so skip back to the
+           ,* start of the loop. */
+          continue
+        }
+
+        if (c == '"') {
+          // It's a string!
+          rewind()
+          return string()
+        }
+
+        /* If it's a bracket, just return it as-is. */
+        if (c == '(' || c == ')') {
+          return c
+        }
+
+        /* It must be a symbol of some sort. We need to rewind otherwise
+         ,* the first character will get lost. */
+        rewind()
+        return symbol()
+      }
+
+      // End of input.
+      return null;
+    }
+  }
+#+END_SRC
+
+#+BEGIN_SRC js :exports both :results output code replace :noweb yes
+  <<lexer>>
+
+  const testInput = `(this is (a test) "We must have spaces and ()"
+                     (brackets))`
+  const o = []
+  let t
+
+  /* Initialize the lexer. */
+  const l = lexer(testInput)
+
+  while ((t = l()) != null) {
+    o.push(t)
+  }
+
+  console.log(o)
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+[ '(',
+  'this',
+  'is',
+  '(',
+  'a',
+  'test',
+  ')',
+  '"We must have spaces and ()"',
+  '(',
+  'brackets',
+  ')',
+  ')' ]
+#+END_SRC
+
+* Parser
+
+It’s at this point that we need to decide what JavaScript types we’re
+using. Instead of lists we’ll just use arrays. We could create a pair
+class and use that for building lists, but I just want to stick with
+basic JavaScript types for this.
+
+Strings, symbols and numbers will all be their native equivalent, as
+will functions, although we don’t have to worry about them yet.
+
+The parser steps through the tokens, doing type conversions as we go.
+When it comes across a list it runs a small loop to put the contents
+of the list into an array, calling itself recursively to parse those
+contents.
+
+#+NAME: parser
+#+BEGIN_SRC js :exports none
+  /* Pass in a tokenizer function. */
+  function parser(nextToken) {
+    function string(token) {
+      /* Strip the quotes off. */
+      return token.replace(/^"|"$/g, '')
+    }
+
+    function symbol(token) {
+      return Symbol.for(token)
+    }
+
+    function number(token) {
+      return parseInt(token, 10)
+    }
+
+    function list() {
+      let val
+      const list = []
+
+      /* Parse each item in the list and put the result into the
+       ,* array. */
+      while ((val = parser(nextToken)) != null) {
+        list.push(val)
+      }
+
+      return list
+    }
+
+    const t = nextToken()
+
+    /* If the token is null we’ve reached the end of input. */
+    if (t === null) {
+      return null
+    }
+
+    const first = t.charAt(0)
+
+    if (first == '(') {
+      /* It's a list! */
+      return list()
+    }
+    else if (first == ')') {
+      /* End of the current list, so return null. */
+      return null
+    }
+    else if (/\d/.test(first)) {
+      /* Congratulations, it's a number! */
+      return number(t) 
+    }
+    else if (first == '"') {
+      /* And a string. */
+      return string(t)
+    }
+    // else
+    return symbol(t)
+  }
+#+END_SRC
+
+#+NAME: parser-test
+#+BEGIN_SRC js :exports code :noweb yes
+  <<parser>>
+
+  const input = `(testing (the) (parser "is a") lot of (fun))
+                 (honest guv 😉)`
+
+  let l = lexer(input)
+  let r
+
+  while ((r = parser(l)) != null) {
+    console.log(r)
+  }
+#+END_SRC
+
+#+BEGIN_SRC js :exports results :results output code replace :noweb yes
+  <<lexer>>
+  <<parser-test>>
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+[ Symbol(testing),
+  [ Symbol(the) ],
+  [ Symbol(parser), 'is a' ],
+  Symbol(lot),
+  Symbol(of),
+  [ Symbol(fun) ] ]
+[ Symbol(honest), Symbol(guv), Symbol(😉) ]
+#+END_SRC
+
+This looks pretty good to me. 😆
+
+It’s probably worth noting that the lexer keeps going until it runs
+out of characters, but the parser stops after a completed
+s‐expression. This means we may have to run the parser against one
+lexer closure several times before we run out of code to parse.
+
+* Functions
+
+I’m going to do this bit out of order, since we can’t actually test
+the evaluator without having some functions.
+
+I’ll only write enough to do some basic testing.
+
+#+NAME: functions-one
+#+BEGIN_SRC js :exports code
+  const functions = {
+    'display': function(...args) {
+      console.log(args.join(' '))
+    },
+    '+': function(...args) {
+      return args.reduce((a, b) => a + b, 0)
+    },
+    '=': function(...args) {
+      return args.reduce((carry, x) => carry & (args[0] === x), true)
+    },
+    'if': function(pred, arg1, arg2) {
+      if (pred) {
+        return arg1
+      }
+      // else
+      return arg2
+    }
+  }
+#+END_SRC
+
+* Apply and Eval
+
+** Apply
+
+Apply is a function that takes a function and a list of arguments and
+applies (calls) the function with the arguments. It’s pretty much just
+a wrapper around JavaScript's own apply method.
+
+#+NAME: apply-one
+#+BEGIN_SRC js :exports code
+  function lispApply(f, args) {
+    if (typeof f !== "function") {
+      throw "APPLY: Unknown function!"
+    }
+  
+    return f.apply(null, args)
+  }
+#+END_SRC
+
+It may seem pointless to have this as a separate function, but it
+should pay‐off later. Hopefully.
+
+** Evaluator
+
+The evaluator steps through the parser’s output, recursively
+evaluating everything. It then checks whether the first element in any
+list is a function, and if so, calls apply on it.
+
+#+NAME: evaluator-one
+#+BEGIN_SRC js :exports code
+  function lispEval(item) {
+    if (Array.isArray(item)) {
+      /* We recursively evaluate *all* the arguments. */
+      args = item.map(lispEval)
+   
+      /* The function to be executed will be the first element of the
+       ,* array 'item' and must be a symbol. */
+      const fname = Symbol.keyFor(args[0])
+
+      if (functions.hasOwnProperty(fname)) {
+        /* It's a known function, so execute it and pass in the
+         ,* arguments. */
+        const f = functions[fname]
+
+        try {
+          return lispApply(f, args.slice(1))
+        }
+        catch(err) {
+          throw err + "\nEVAL: Calling '" + JSON.stringify(item[0]) + "'"
+        }
+      }
+      else {
+        /* There's no function of that name in the functions object. */
+        throw "\nEVAL: Unknown function '" + fname + "'! 😲"
+      }
+    }
+    else {
+      /* If the thing we've been passed in isn't an array, we just pass
+       ,* it straight back. */
+      return item
+    }
+  }
+#+END_SRC
+
+Pretty simple, huh? Let’s test it.
+
+#+NAME: evaluator-one-test-one
+#+BEGIN_SRC js :exports code
+  lispEval(parser(lexer('(display (+ 1 2 3))')))
+#+END_SRC
+
+#+BEGIN_SRC js :exports results :results output code replace :noweb yes
+    <<lexer>>
+    <<parser>>
+    <<functions-one>>
+    <<apply-one>>
+    <<evaluator-one>>
+    <<evaluator-one-test-one>>
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+6
+#+END_SRC
+
+Success! Let’s try a more complex example.
+
+#+NAME: evaluator-one-test-two
+#+BEGIN_SRC js :exports code
+  lispEval(parser(lexer('(display (if (= 5 (+ 1 2 3)) "👍" "👎"))')))
+#+END_SRC
+
+#+BEGIN_SRC js :exports results :results output code replace :noweb yes
+    <<lexer>>
+    <<parser>>
+    <<functions-one>>
+    <<apply-one>>
+    <<evaluator-one>>
+    <<evaluator-one-test-two>>
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+👎
+#+END_SRC
+
+\(1+2+3\) does not equal five, so yup, that’s right!
+
+Again! Again!
+
+#+NAME: evaluator-one-test-three
+#+BEGIN_SRC js :exports code
+  lispEval(parser(lexer('(if (= 1 1) (display "😇") (display "👿"))')))
+#+END_SRC
+
+#+BEGIN_SRC js :exports results :results output code replace :noweb yes
+    <<lexer>>
+    <<parser>>
+    <<functions-one>>
+    <<apply-one>>
+    <<evaluator-one>>
+    <<evaluator-one-test-three>>
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+😇
+👿
+#+END_SRC
+
+Yes! We’re really on a roll here!
+
+No, wait… Why did we get both emoji? That’s not right.
+
+Well, the evaluator evaluates *every* argument, which means when we
+execute an ~if~ both results are evaluated, even though only one value
+will be returned. Alas we can’t just blindly evaluate everything.
+
+** Special forms
+
+A special form is a piece of code that needs to be treated differently
+from the normal code. ~If~ is a case in point: we need to evaluate the
+first argument and then evaluate either the second or third argument
+according to the value of the first.
+
+This means we need to move the evaluation of arguments out of ~eval~
+into the functions themselves. Or we can save effort when writing
+functions by putting it into ~apply~, and making ~if~ extra‐special,
+in that it’s no longer a normal function executed by ~apply~ but
+called directly from ~eval~. It can then handle the evaluation of its
+arguments itself.
+
+#+NAME: apply-two
+#+BEGIN_SRC js :exports none
+  function lispIf(args) {
+    /* Test argument 0 and evaluate argument 1 or 2 as appropriate. */
+    if (lispEval(args[0])) {
+      return lispEval(args[1])
+    }
+    // else
+    return lispEval(args[2])
+  }
+
+  function lispApply(f, args) {
+    if (typeof f !== "function") {
+      throw "APPLY: Unknown function!"
+    }
+  
+    a = args.map(lispEval)
+    return f.apply(null, a)
+  }
+#+END_SRC
+
+#+NAME: evaluator-two
+#+BEGIN_SRC js :exports code :noweb yes
+  <<apply-two>>
+
+  function lispEval(item) {
+    if (Array.isArray(item)) {
+      /* We must always eval the function name element of the array as
+       ,* we have no guarantee it's a plain symbol. */
+      const fname = Symbol.keyFor(lispEval(item[0]))
+
+      /* Check if the function is an "if". */
+      if (fname === 'if') {
+        lispIf(item.slice(1))
+      }
+      else if (functions.hasOwnProperty(fname)) {
+        /* It's a known function, so execute it and pass in the
+         ,* (unevaluated) arguments. */
+        const f = functions[fname]
+
+        try {
+          return lispApply(f, item.slice(1))
+        }
+        catch(err) {
+          throw err + "\nEVAL: Calling '" + JSON.stringify(item[0]) + "'"
+        }
+      }
+      else {
+        throw "\nEVAL: Unknown function '" + fname + "'! 😲"
+      }
+    }
+    else {
+      return item
+    }
+  }
+#+END_SRC
+
+Let’s try again.
+
+#+NAME: evaluator-two-test-one
+#+BEGIN_SRC js :exports code :noweb yes
+  <<evaluator-one-test-three>>
+#+END_SRC
+
+#+BEGIN_SRC js :exports results :results output code replace :noweb yes
+    <<lexer>>
+    <<parser>>
+    <<functions-one>>
+    <<evaluator-two>>
+    <<evaluator-two-test-one>>
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+😇
+#+END_SRC
+
+Victory!
+
+If you were writing a simple domain‐specific‐language, this would
+quite likely do you, but to make it a bit more full‐featured, head on
+over to [[file:part-2.org][part two]].

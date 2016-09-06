@@ -1,0 +1,661 @@
+#+TITLE: Let’s go write a Lisp ‐ part two
+#+DATE: 1st September 2016
+
+#+BEGIN_SRC js :exports none :tangle yes
+  "use strict";
+#+END_SRC
+
+#+NAME: lexer
+#+BEGIN_SRC js :exports none :tangle yes
+  function lexer(input) {
+    let pos = 0
+
+    /* A couple of functions to help us grab the characters. */
+    function next() {
+      if (pos < input.length) {
+        return input.charAt(pos++)
+      }
+      return null
+    }
+
+    function rewind() {
+      pos--
+    }
+
+    /* Return a string.
+     ,*
+     ,* Strings are special because they can contain pretty much anything
+     ,* except a double quote, so we can't break them on spaces. */
+    function string() {
+      let token = next()
+      let c
+
+      while ((c = next()) != null) {
+        if (c == '"') {
+          return token + c
+        }
+        // else
+        token = token + c
+      }
+
+      /* If we get this far then the string wasn't terminated. I'll let
+       ,* it slide this time. */
+      return token
+    }
+
+    /* I've called this symbol, but it's actually anything that's not a
+     ,* string or a bracket. */
+    function symbol() {
+      let token = ""
+      let c
+
+      while ((c = next()) != null) {
+        /* Check that the character isn't whitespace or a closing
+         ,* bracket. */
+        if (/[\s\)]/.test(c)) {
+          /* This character isn’t part of the token, so wind it back
+           ,* into the input. */
+          rewind()
+          return token
+        }
+        // else
+        token = token + c
+      }
+
+      /* Again, if we get here we've reached the end of the input. */
+      return token
+    }
+
+    /* This is the main function. */
+    return function() {
+      let c
+
+      while ((c = next()) != null) {
+        if (/\s/.test(c)) {
+          /* Whitespace, we don't care about this, so skip back to the
+           ,* start of the loop. */
+          continue
+        }
+
+        if (c == '"') {
+          // It's a string!
+          rewind()
+          return string()
+        }
+
+        /* If it's a bracket, just return it as-is. */
+        if (c == '(' || c == ')') {
+          return c
+        }
+
+        /* It must be a symbol of some sort. We need to rewind otherwise
+         ,* the first character will get lost. */
+        rewind()
+        return symbol()
+      }
+
+      // End of input.
+      return null;
+    }
+  }
+#+END_SRC
+
+#+NAME: parser
+#+BEGIN_SRC js :exports none :tangle yes
+  /* Pass in a tokenizer function. */
+  function parser(nextToken) {
+    function string(token) {
+      /* Strip the quotes off. */
+      return token.replace(/^"|"$/g, '')
+    }
+
+    function symbol(token) {
+      return Symbol.for(token)
+    }
+
+    function number(token) {
+      return parseInt(token, 10)
+    }
+
+    function list() {
+      let val
+      const list = []
+
+      /* Parse each item in the list and put the result into the
+       ,* array. */
+      while ((val = parser(nextToken)) != null) {
+        list.push(val)
+      }
+
+      return list
+    }
+
+    const t = nextToken()
+
+    /* If the token is null we’ve reached the end of input. */
+    if (t === null) {
+      return null
+    }
+
+    const first = t.charAt(0)
+
+    if (first == '(') {
+      /* It's a list! */
+      return list()
+    }
+    else if (first == ')') {
+      /* End of the current list, so return null. */
+      return null
+    }
+    else if (/\d/.test(first)) {
+      /* Congratulations, it's a number! */
+      return number(t) 
+    }
+    else if (first == '"') {
+      /* And a string. */
+      return string(t)
+    }
+    // else
+    return symbol(t)
+  }
+#+END_SRC
+
+#+NAME: apply-two
+#+BEGIN_SRC js :exports none
+  function lispIf(args) {
+    /* Test argument 0 and evaluate argument 1 or 2 as appropriate. */
+    if (lispEval(args[0])) {
+      return lispEval(args[1])
+    }
+    // else
+    return lispEval(args[2])
+  }
+
+  function lispApply(f, args) {
+    if (typeof f !== "function") {
+      throw "APPLY: Unknown function!"
+    }
+  
+    a = args.map(lispEval)
+    return f.apply(null, a)
+  }
+#+END_SRC
+
+This is the second part of an attempt to write a Lisp‐like language as
+a meta‐circular evaluator in JavaScript. So far we’ve got it taking in
+a string and executing functions, but not much else. [[file:part-1.org][Here’s part one]].
+
+* Variables
+
+‘That’s all well and good’, I hear you cry, ‘but what about variables?
+How am I supposed to get _any_ work done without being able to store
+things?’
+
+OK, so I guess we can add variables.
+
+First of all we’ll need somewhere to store them. Remember that object
+that we put all our functions into? Let’s rename that ~global~. For
+convenience we’ll create a ~lispDefine~ function that stores things in
+it.
+
+Finally we’ll create a lookup function for retrieving the values. We
+can use this in lispEval to do a look‐up for all symbols.
+
+#+NAME: environment-one
+#+BEGIN_SRC js :exports code
+  /* Environment object. */
+  const global = {}
+
+  /* A helper function for defining lisp variables. */
+  function lispDefine(env, name, value) {
+    if (typeof name === "string") {
+      env[Symbol.for(name)] = value
+    }
+    else if (typeof name === "symbol") {
+      env[name] = value
+    }
+    else {
+      throw "DEFINE: Unexpected type '" + typeof name
+        + "' for '" + name + "'!"
+    }
+  }
+
+  function lookupVariable(env, name) {
+    if (env.hasOwnProperty(name)) {
+      return env[name]
+    }
+    else {
+      throw "LOOKUP: Unknown variable '" + Symbol.keyFor(name) + "'!"
+    }
+  }
+
+  lispDefine(global, 'display', function(...args) {
+    console.log(args.join(' '))
+  })
+
+  lispDefine(global, '+', function(...args) {
+    return args.reduce((a, b) => a + b, 0)
+  })
+
+  lispDefine(global, '=', function(...args) {
+    return args.reduce((carry, x) => carry & (args[0] === x), true)
+  })
+#+END_SRC
+
+#+NAME: evaluator-three
+#+BEGIN_SRC js :exports code
+  function lispEval(item) {
+    if (typeof item === "symbol") {
+      return lookupVariable(global, item)
+    }
+    else if (Array.isArray(item)) {
+      /* Check if the function is an "if". */
+      if (item[0] === Symbol.for('if')) {
+        lispIf(item.slice(1))
+      }
+      /* Or a "define". */
+      else if (item[0] === Symbol.for('define')) {
+        lispDefine(global, item[1], lispEval(item[2]))
+      }
+      else {
+        /* We must always eval the function name element of the array as
+         ,* we have no guarantee it's a function. */
+        const f = lispEval(item[0])
+
+        try {
+          return lispApply(f, item.slice(1))
+        }
+        catch(err) {
+          throw err + "\nEVAL: Calling '" + JSON.stringify(item[0]) + "'"
+        }
+      }
+    }
+    else {
+      return item
+    }
+  }
+#+END_SRC
+
+#+NAME: environment-one-test-one
+#+BEGIN_SRC js :exports code
+  lispEval(parser(lexer('(define cows "moo 🐄")')))
+  lispEval(parser(lexer('(display cows)')))
+#+END_SRC
+
+#+BEGIN_SRC js :exports results :results output code replace :noweb yes
+  <<lexer>>
+  <<parser>>
+  <<apply-two>>
+  <<environment-one>>
+  <<evaluator-three>>
+  <<environment-one-test-one>>
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+moo 🐄
+#+END_SRC
+
+* Functions
+
+So far so good, but we have to write our functions in JavaScript,
+which is OK, I guess, but not very exciting. Let’s make a ~lambda~
+function.
+
+One thing we need to bear in mind is that we need to look up
+variables, which could be either local to the function or global. To
+save us having to do two look‐ups (local and global) for each variable
+we’ll build a data structure containing the local variables, and the
+global environment object. Then we can modify ~lookupVariable~ to
+check each in turn. (More recursion!)
+
+#+NAME: environment-two
+#+BEGIN_SRC js :exports code :tangle yes
+  /* Make a new environment object. */
+  function newEnvironment(parent) {
+    const e = {}
+    e.parent = parent
+    return e
+  }
+
+  /* A helper function for defining lisp variables. */
+  function lispDefine(env, name, value) {
+    if (typeof name === "string") {
+      env[Symbol.for(name)] = value
+    }
+    else if (typeof name === "symbol") {
+      env[name] = value
+    }
+    else {
+      throw "DEFINE: Unexpected type '" + typeof name
+            + "' for '" + name + "'!"
+    }
+  }
+
+  function lookupVariable(env, name) {
+    if (env.hasOwnProperty(name)) {
+      return env[name]
+    }
+    else if (env.parent !== null) {
+      /* Look it up in the parent environment. */
+      return lookupVariable(env.parent, name)
+    }
+    else {
+      throw "LOOKUP: Unknown variable '" + Symbol.keyFor(name) + "'!"
+    }
+  }
+
+  const global = newEnvironment(null)
+#+END_SRC
+
+We’ll use a closure to contain the lisp code within a JavaScript
+function. This means we don’t have to differentiate between JavaScript
+and lisp functions within ~lispApply~ because they’re all just
+JavaScript functions!
+
+#+NAME: lambda
+#+BEGIN_SRC js :exports code :tangle yes
+  function lambda(env, argnames, body) {
+    return function(...args) {
+      /* We need to build up a stack frame for this function where we
+       ,* store local variables, eg. the arguments. */
+      const localEnv = newEnvironment(env)
+
+      /* For each arg, a, define a variable named argnames[i]. */
+      args.forEach((a, i) => lispDefine(localEnv, argnames[i], a))
+
+      /* And eval each expression in the body with our new environment.
+       ,*
+       ,* TODO: add a begin function and use it here. */
+      return body.reduce((c, s) => lispEval(localEnv, s), null)
+    }
+  }
+#+END_SRC
+
+Add environment handling to our other functions.
+
+#+NAME: apply-three
+#+BEGIN_SRC js :exports code :tangle yes
+  function lispIf(env, args) {
+    /* Test argument 0 and evaluate argument 1 or 2 as appropriate. */
+    if (lispEval(env, args[0])) {
+      return lispEval(env, args[1])
+    }
+    // else
+    return lispEval(env, args[2])
+  }
+
+  function lispApply(env, f, args) {
+    if (typeof f !== "function") {
+      throw "APPLY: Unknown function!"
+    }
+  
+    const a = args.map((a) => lispEval(env, a))
+    return f.apply(null, a)
+  }
+#+END_SRC
+
+#+NAME: functions-two
+#+BEGIN_SRC js :exports none
+  lispDefine(global, 'display', function(...args) {
+    console.log(args.join(' '))
+  })
+
+  lispDefine(global, '+', function(...args) {
+    return args.reduce((a, b) => a + b)
+  })
+
+  lispDefine(global, '=', function(...args) {
+    return args.reduce((carry, x) => carry & (args[0] === x), true)
+  })
+#+END_SRC
+
+And finally add environment handling to ~lispEval~ too, and because
+~lambda~ is another special form we add it to ~lispEval~. The
+arguments shouldn’t be evaluated, otherwise the function would be
+evaluated when we declare it instead of when we call it.
+
+#+NAME: evaluator-four
+#+BEGIN_SRC js :exports code :tangle yes
+  function lispEval(env, item) {
+    if (typeof item === "symbol") {
+      return lookupVariable(env, item)
+    }
+    else if (Array.isArray(item)) {
+      /* Check if the function is an "if". */
+      if (item[0] === Symbol.for('if')) {
+        return lispIf(env, item.slice(1))
+      }
+      /* Or a "define". */
+      else if (item[0] === Symbol.for('define')) {
+        lispDefine(env, item[1], lispEval(env, item[2]))
+      }
+      /* Or "lambda"... */
+      else if (item[0] === Symbol.for('lambda')) {
+        return lambda(env, item[1], item.slice(2))
+      }
+      /* Or "quote". (Return the argument unmodified.) */
+      else if (item[0] === Symbol.for('quote')) {
+        return item[1]
+      }
+      else {
+        try {
+          return lispApply(env, lispEval(env, item[0]), item.slice(1))
+        }
+        catch(err) {
+          throw err + "\nEVAL: Calling '" + JSON.stringify(item[0]) + "'"
+        }
+      }
+    }
+    else {
+      return item
+    }
+  }
+#+END_SRC
+
+#+NAME: lambda-test-one
+#+BEGIN_SRC js :exports code
+  lispEval(global, parser(lexer('(define cows (lambda (x) (display "cows" x "moo 🐄")))')))
+  lispEval(global, parser(lexer('(cows "go")')))
+#+END_SRC
+
+#+BEGIN_SRC js :exports results :results output code replace :noweb yes
+    <<lexer>>
+    <<parser>>
+    <<lambda>>
+    <<apply-three>>
+    <<environment-two>>
+    <<functions-two>>
+    <<evaluator-four>>
+    <<lambda-test-one>>
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+cows go moo 🐄
+#+END_SRC
+
+Looks good. Let’s try something more complex.
+
+#+NAME: lambda-test-two
+#+BEGIN_SRC js :exports code
+  const sexp = `
+    (define fib (lambda (n)
+      (define iter (lambda (a b count)
+                     (if (= n count)
+                         (+ a b)
+                         (iter b (+ a b) (+ count 1)))))
+      (iter 1 1 3)))
+  `
+
+  lispEval(global, parser(lexer(sexp)))
+  lispEval(global, parser(lexer('(display "The 12th Fibonacci number is:" (fib 12))')))
+#+END_SRC
+
+The 12th Fibonacci number is 144. Let’s see what we get...
+
+#+BEGIN_SRC js :exports results :results output code replace :noweb yes
+  <<lexer>>
+  <<parser>>
+  <<lambda>>
+  <<apply-three>>
+  <<environment-two>>
+  <<functions-two>>
+  <<evaluator-four>>
+  <<lambda-test-two>>
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC js
+The 12th Fibonacci number is: 144
+#+END_SRC
+
+Wooo!
+
+It may not be immediately obvious, but our lisp has lexical scope and
+you can use closures. This is because we’re passing ~lambda~ the
+environment of the calling function and it’s stored within the
+JavaScript closure that ~lambda~ creates, just like the program code
+itself.
+
+* REPL(ish)
+
+I’ve hacked together a rather dodgy REPL.
+
+I’ve added some more functions:
+
+ - Arithmetic :: +, -, *, /, =, >, <, >=, <=, %
+ - Boolean arithmetic :: and, or, not
+ - Array handling :: first, rest, push, pop, shift, unshift, array-ref,
+      concat
+ - Strings :: split (no need for join as you can use ’+’ for that)
+ - Flow control :: map, reduce
+ - Others :: null (returns null, shockingly), get-js-context (you can
+      use this to get JavaScript functions)
+
+The complete code is [[https://gist.github.com/alanthird/e2009725b0c0eccde6961fc77606b6a5][here]], and you can try it out below.
+
+#+NAME: defines
+#+BEGIN_SRC lisp :exports none
+  (define < (lambda (a b) (> b a)))
+  (define <= (lambda (a b) (or (< a b) (= a b))))
+  (define >= (lambda (a b) (or (> a b) (= a b))))
+
+  (define cons
+    (lambda (a b)
+      (define l (concat (quote ()) a))
+      (push l b)
+      l))
+  (define car (lambda (l) (first l)))
+  (define cdr (lambda (l) (array-ref l 1)))
+
+  (display "A Metacircular-Evaluator written in JavaScript")
+  (display "© 2016 Alan Third")
+  (display "")
+#+END_SRC
+
+#+BEGIN_SRC js :exports none :tangle yes :noweb yes
+  lispDefine(global, '+', (...args) => args.reduce((c, n) => c + n))
+  lispDefine(global, '-', (...args) => args.reduce((c, n) => c - n))
+  lispDefine(global, '*', (...args) => args.reduce((c, n) => c * n))
+  lispDefine(global, '/', (...args) => args.reduce((c, n) => c / n))
+  lispDefine(global, '=', function(...args) {
+    return args.reduce((carry, x) => carry & (args[0] === x), true)
+  })
+  lispDefine(global, '>', (a, b) => a > b)
+  lispDefine(global, '%', (a, b) => a % b)
+
+  /* Arrays */
+  lispDefine(global, 'first', l => l[0])
+  lispDefine(global, 'rest',  l => l.slice(1))
+  lispDefine(global, 'push',  (l, i) => l.push(i))
+  lispDefine(global, 'pop',   l => l.pop())
+  lispDefine(global, 'unshift', (l, i) => l.unshift(i))
+  lispDefine(global, 'shift', l => l.shift())
+  lispDefine(global, 'array-ref', (l, i) => l[i])
+  lispDefine(global, 'concat', (l, i) => l.concat(i))
+
+  lispDefine(global, 'map', (f, l) => l.map(f))
+  lispDefine(global, 'reduce', (f, l, init) => l.reduce(f, init))
+
+  /* Strings */
+  lispDefine(global, 'split', (s, c) => s.split(c))
+
+  lispDefine(global, 'and', (...args) => args.reduce((a, b) => a && b))
+  lispDefine(global, 'or',  (...args) => args.reduce((a, b) => a || b))
+  lispDefine(global, 'not', p => !p)
+
+  lispDefine(global, 'null', null)
+  lispDefine(global, 'get-js-context', name => window[name])
+
+  const input = document.getElementById('input')
+  const output = document.getElementById('output')
+
+  /* Define a new display function for output. */
+  function display(...args) {
+    const str = document.createTextNode(args.join(' ') + '\n')
+    output.appendChild(str)
+
+    /* Scroll to bottom of output when we write to it. */
+    output.scrollTop = output.scrollHeight
+  }
+
+  lispDefine(global, 'display', display)
+
+  function lisp(input) {
+    let sexp
+    let result
+
+    let l = lexer(input)
+
+    try {
+      while ((sexp = parser(l)) != null) {
+        result = lispEval(global, sexp)
+      }
+    }
+    catch (err) {
+      display(err)
+      return
+    }
+
+    if (result !== undefined) {
+      display('=> ' + JSON.stringify(result))
+    }
+  }
+
+  lisp(`
+    <<defines>>
+  `)
+
+  let codeEditor = CodeMirror.fromTextArea(input, { theme: "zenburn" });
+
+  document.getElementById('runIt').addEventListener('click', function(event) {
+    lisp(codeEditor.getValue())
+  })
+#+END_SRC
+
+#+BEGIN_HTML
+<style>
+ #output {
+     height: 10em;
+     overflow: auto;
+ }
+</style>
+
+
+
+<textarea id="input">
+(display "Hello, world! 🌍")
+</textarea>
+<br>
+<input type="button" id="runIt" value="Eval">
+<br>
+<pre id="output"></pre>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.2/codemirror.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.2/theme/zenburn.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.2/mode/scheme/scheme.min.js"></script>
+
+<script src="part-2.js"></script>
+#+END_HTML
