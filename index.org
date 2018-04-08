@@ -29,7 +29,7 @@
           ("blog-content"
            :base-directory "~/Documents/idiocy.org"
            :base-extension "org"
-           :publishing-directory "/scp:alan@colt.holly.idiocy.org:idiocy.org/public/"
+           :publishing-directory "/scp:alan@namib.holly.idiocy.org:idiocy.org/public/"
            ;;:publishing-directory "./build"
            :recursive t
            :exclude "build"
@@ -56,8 +56,8 @@
            :exclude-tags ("noexport" "todo"))
           ("blog-static"
            :base-directory "~/Documents/idiocy.org"
-           :base-extension "css\\|js\\|png\\|jpg\\|gif\\|svg\\|pdf\\|mp3\\|ogg"
-           :publishing-directory "/scp:alan@colt.holly.idiocy.org:idiocy.org/public/"
+           :base-extension "css\\|js\\|png\\|jpg\\|gif\\|svg\\|pdf\\|mp3\\|ogg\\|mp4"
+           :publishing-directory "/scp:alan@namib.holly.idiocy.org:idiocy.org/public/"
            ;;:publishing-directory "./build"
            :recursive t
            :exclude "build"
