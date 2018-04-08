@@ -265,7 +265,7 @@ Try it out:
   }
 #+end_src
 
-#+begin_html
+#+BEGIN_EXPORT html
   <input type="number" id="testNum" value="137">
   <input type="button" id="testButton" value="is it prime?">
   <span id="result"></span>
@@ -277,5 +277,5 @@ Try it out:
 
   <script type="text/javascript">
   </script>
-#+end_html
+#+END_EXPORT
 

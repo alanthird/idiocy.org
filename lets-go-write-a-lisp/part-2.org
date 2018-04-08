@@ -634,7 +634,7 @@ The complete code is [[https://gist.github.com/alanthird/e2009725b0c0eccde6961fc
   })
 #+END_SRC
 
-#+BEGIN_HTML
+#+BEGIN_EXPORT html
 <style>
  #output {
      height: 10em;
@@ -658,4 +658,4 @@ The complete code is [[https://gist.github.com/alanthird/e2009725b0c0eccde6961fc
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.18.2/mode/scheme/scheme.min.js"></script>
 
 <script src="part-2.js"></script>
-#+END_HTML
+#+END_EXPORT

@@ -36,7 +36,7 @@
 
 * Your explorer name:
 
-#+begin_html
+#+BEGIN_EXPORT html
 <style>
   #name {
     width: 80%;
@@ -63,4 +63,4 @@
 
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
 <script type="text/javascript" src="explorers.js"></script>
-#+end_html
+#+END_EXPORT

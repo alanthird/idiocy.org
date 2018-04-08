@@ -62,7 +62,7 @@ all the ones I’ve seen have been.
 
 -----
 
-#+BEGIN_HTML
+#+BEGIN_EXPORT html
 <style>
  #output {
    width: 100%;
@@ -89,7 +89,7 @@ all the ones I’ve seen have been.
 <input type="text" id="imaginaryPart" value="13">\(i\)<br>
 <input type="submit" id="makeSpiral" value="generate spiral">
 </div>
-#+END_HTML
+#+END_EXPORT
 
 Some numbers to try:
 
@@ -113,9 +113,9 @@ For more information see:
 - http://mathoverflow.net/questions/91423/gaussian-prime-spirals
 - http://demonstrations.wolfram.com/GaussianPrimeSpirals/
 
-#+BEGIN_HTML
+#+BEGIN_EXPORT html
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
 <script src="return-to-javascript-primes/prime.js"></script>
 <script src="gaussian-prime-spirals/gaussian-spirals.js"></script>
-#+END_HTML
+#+END_EXPORT
