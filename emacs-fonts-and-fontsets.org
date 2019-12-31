@@ -1,5 +1,8 @@
 #+TITLE: Emacs, fonts and fontsets
 #+date: 15th March 2019
+
+Yuan Fu has very kindly [[https://archive.casouri.co.uk/note/2019/emacs-%25E5%25AD%2597%25E4%25BD%2593%25E4%25B8%258E%25E5%25AD%2597%25E4%25BD%2593%25E9%259B%2586/index.html][translated this article into Chinese]].
+
 One problem I've had with Emacs is understanding how the font system
 works. It's always been clear that fontsets are the answer to a lot of
 my problems, but I really struggled to work out how to use it. Here I
@@ -176,4 +179,28 @@ plan to note what I've learned about how to set fonts in Emacs.
     (set-fontset-font t 'tibetan "Noto Sans Tibetan")
   #+END_SRC
 
-Updated 31/3/2019. Thanks to Yuan Fu for his suggestions.
+* Updates
+
+Updated 31/3/2019. Thanks to [[https://archive.casouri.co.uk/note/index.html][Yuan Fu]] for his suggestions.
+
+Updated 1/4/2019. Added link to Chinese translation.
+
+Updated 31/12/2019. Sebastian Urban has sent me a more
+[[https://gist.github.com/alanthird/7152752d384325a83677f4a90e1e1a05][complete Noto font set‐up]]. He says:
+
+  #+BEGIN_QUOTE
+  I found your post "Emacs, fonts and fontsets" helpful, but I thought
+  why stop there. Because there are other Noto Sans fonts, I decided
+  to make as complete list as possible. It has form of
+  "(set-fontset-font "default-fontset" 'SCRIPTNAME "Noto Sans FONT")".
+  I didn't include "Noto Sans Symbols" and "Noto Sans Symbols2" and
+  I'm using "Noto Sans CJK SC Regular" for 'cjk-misc.
+
+  Also because it takes a lot of space, I keep them in separate file
+  and load with "(load ...)" from my init. Before "load" I set:
+  (set-fontset-font "fontset-default" 'unicode "Consolas")
+  (set-fontset-font "fontset-default" 'unicode "Symbola" nil 'append)
+  (where "Consolas" is my default font) which in the end stops Emacs
+  from searching fonts for Unicode, if it won't find characters among
+  "Consolas" and "Symbola", and simply display boxes with hex codes - less slowdowns.
+  #+END_QUOTE
