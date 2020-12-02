@@ -30,10 +30,10 @@
           ("blog-content"
            :base-directory "~/Documents/idiocy.org"
            :base-extension "org"
-           :publishing-directory "/scp:alan@namib.holly.idiocy.org:idiocy.org/public/"
-           ;;:publishing-directory "./build"
+           ;;:publishing-directory "/scp:alan@namib.holly.idiocy.org:idiocy.org/public/"
+           :publishing-directory "./docs"
            :recursive t
-           :exclude "build"
+           :exclude "docs"
            :publishing-function (org-html-publish-to-html)
 
            :with-tags nil
@@ -58,10 +58,10 @@
           ("blog-static"
            :base-directory "~/Documents/idiocy.org"
            :base-extension "css\\|js\\|png\\|jpg\\|gif\\|svg\\|pdf\\|mp3\\|ogg\\|mp4"
-           :publishing-directory "/scp:alan@namib.holly.idiocy.org:idiocy.org/public/"
-           ;;:publishing-directory "./build"
+           ;;:publishing-directory "/scp:alan@namib.holly.idiocy.org:idiocy.org/public/"
+           :publishing-directory "./docs"
            :recursive t
-           :exclude "build"
+           :exclude "docs"
            :publishing-function org-publish-attachment)))
 
   (setf org-html-mathjax-template "\

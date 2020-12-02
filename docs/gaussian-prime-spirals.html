@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2020-12-02 Wed 16:24 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaussian prime spirals</title>
+<meta name="generator" content="Org mode">
+<meta name="author" content="Alan Third">
+                     <link rel='stylesheet' type='text/css' href='/common/idiocy.css'>
+                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                                 <script type='text/x-mathjax-config'>
+                                   MathJax.Hub.Config({
+                                     'SVG': {
+                                       font: 'Latin-Modern'
+                                     }
+                                   });
+                                 </script>
+                                 <script type='text/javascript'
+                                         src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG-full'></script>
+</head>
+<body>
+<div id="preamble" class="status">
+                         <a href='/'>
+                           <img src='/common/logo.svg' alt='idiocy.org'>
+                         </a>
+</div>
+<div id="content">
+<header>
+<h1 class="title">Gaussian prime spirals</h1>
+</header><p>
+Gaussian integers are complex numbers where both the real and
+imaginary parts are integers. So \(3+7i\) is a Gaussian integer, but
+\(1/2+3i\) isn't.
+</p>
+
+<p>
+Pretty straight-forward, right?
+</p>
+
+<p>
+A Gaussian prime is, funnily enough, a Gaussian integer that is also a
+prime. Because complex numbers are a bit weird the rules for
+determining whether any Gaussian integer is prime are a little
+convoluted. Basically it boils down to:
+</p>
+
+<ul class="org-ul">
+<li>if either the real or imaginary part is \(0\) the other part must be
+a prime of the form \(4n+3\).</li>
+</ul>
+
+<p>
+Or:
+</p>
+
+<ul class="org-ul">
+<li>the real and imaginary parts squared and added together must be a
+prime <i>not</i> of the form \(4n+3\).</li>
+</ul>
+
+<p>
+A prime of the form \(4n+3\) simply means that if you subtract three
+and divide by four the resulting number should be an integer.
+</p>
+
+<p>
+One thing to note about the Gaussian primes is that they are
+symmetrical around both the real and imaginary axes. This means that
+since \(13+8i\) is a prime, so are all \(±13±8i\). It’s also worth
+noting that all \(±8±13i\) are primes too. Lots of symmetry!
+</p>
+
+<p>
+But what's this got to do with spirals, you ask. Well, nothing as far
+as I can see since they're not really spirals, but that seems to be
+the name that's stuck.
+</p>
+
+<hr>
+
+<p>
+Start at \(8+13i\), which is a prime, and repeatedly add \(1\) until
+you reach another prime, \(10+13i\), then turn left, so now you’re
+adding \(i\) and continue until you reach another prime, \(10+17i\)
+and turn left again (\(-1\)) and continue repeating, you’ll eventually
+end up tracing over your previous path:
+</p>
+
+<ol class="org-ol">
+<li>\(8+13i\)</li>
+<li>\(10+13i\)</li>
+<li>\(10+17i\)</li>
+<li>\(8+17i\)</li>
+<li>\(8+13i\) (same as 1)</li>
+<li>\(10+13i\) (same as 2)</li>
+<li>etc.</li>
+</ol>
+
+<p>
+It seems to be a rule that you will always end up tracing a loop,
+although it’s usually more complex than the square in the example
+above. For example \(-12-7i\) looks like this:
+</p>
+
+
+<figure>
+<img src="gaussian-prime-spirals/Screen-Shot-2014-09-21-at-10-38-14.png" alt="Screen-Shot-2014-09-21-at-10-38-14.png">
+
+<figcaption><span class="figure-number">Figure 1: </span>\(-12-7i\) spiral</figcaption>
+</figure>
+
+<p>
+The “spirals” are quite attractive and nicely symmetrical. Or at least
+all the ones I’ve seen have been.
+</p>
+
+
+<figure>
+<img src="gaussian-prime-spirals/Screen-Shot-2014-09-21-at-10-44-09.png" alt="Screen-Shot-2014-09-21-at-10-44-09.png">
+
+<figcaption><span class="figure-number">Figure 2: </span>\(5+5i\) spiral</figcaption>
+</figure>
+
+<hr>
+
+<style>
+ #output {
+   width: 100%;
+   height: 30vw;
+   position: relative;
+ }
+
+ #gaussianSpiral {
+   width: 100%;
+   height: 100%;
+ }
+
+#spiralControls input[type="text"] {
+  width: 3em;
+}
+</style>
+<div id="output">
+	<canvas id="gaussianSpiral" width="100%" height="100%"></canvas>
+</div>
+<div id="spiralControls">
+<div id="cornerCount">&nbsp;</div>
+<input type="text" id="realPart" value="8">
++
+<input type="text" id="imaginaryPart" value="13">\(i\)<br>
+<input type="submit" id="makeSpiral" value="generate spiral">
+</div>
+
+<p>
+Some numbers to try:
+</p>
+
+<ul class="org-ul">
+<li>\(-12-7i\)</li>
+<li>\(3+5i\)</li>
+<li>\(5+23i\)</li>
+<li>\(12+28i\)</li>
+<li>\(1+63i\)</li>
+</ul>
+
+
+<dl class="org-dl">
+<dt>Note</dt><dd>The script above generates the spiral and displays it in the
+browser, but it can take quite a long time if the spiral is
+large, for example \(232+277i\). My intention was to include
+a corner count that updated as the spiral was generated so
+you could tell it was actually doing something, but battling
+the CSS on this page has put me off for the time being. I'll
+try and add it later.</dd>
+</dl>
+
+<p>
+For more information see:
+</p>
+
+<ul class="org-ul">
+<li><a href="http://mathoverflow.net/questions/91423/gaussian-prime-spirals">http://mathoverflow.net/questions/91423/gaussian-prime-spirals</a></li>
+<li><a href="http://demonstrations.wolfram.com/GaussianPrimeSpirals/">http://demonstrations.wolfram.com/GaussianPrimeSpirals/</a></li>
+</ul>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+<script src="return-to-javascript-primes/prime.js"></script>
+<script src="gaussian-prime-spirals/gaussian-spirals.js"></script>
+</div>
+<div id="postamble" class="status">
+                          <table>
+                              <tr>
+                                  <th>t</th>
+                                  <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+                              </tr>
+                              <tr>
+                                  <th>g</th>
+                                  <td><a href='https://github.com/alanthird'>alanthird</a></td>
+                              </tr>
+                              <tr>
+                                  <th>e</th>
+                                  <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+                              </tr>
+                          </table>
+</div>
+</body>
+</html>

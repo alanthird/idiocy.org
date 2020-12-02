@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2020-12-02 Wed 16:24 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandelbrot explorer</title>
+<meta name="generator" content="Org mode">
+<meta name="author" content="Alan Third">
+                     <link rel='stylesheet' type='text/css' href='/common/idiocy.css'>
+                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css"/>
+</head>
+<body>
+<div id="preamble" class="status">
+                         <a href='/'>
+                           <img src='/common/logo.svg' alt='idiocy.org'>
+                         </a>
+</div>
+<div id="content">
+<header>
+<h1 class="title">Mandelbrot explorer</h1>
+</header><style>
+  #map {
+    width: 90%;
+    height: 75vh;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+<div id="map"></div>
+<br>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js"></script>
+
+<script>
+ var layerURL = '/map/{layer}/{z}/{y}/{x}';
+ var layerAttrs = {
+     attribution: 'Image data &copy; Alan Third',
+     noWrap: true,
+     maxZoom: 45,
+     detectRetina: true,
+     crs: L.CRS.Simple
+ };
+
+ var layers = [
+     {name: "Flame", layerName: "flame"},
+     {name: "Blue-Green", layerName: "bluegreen"},
+     {name: "Beetlejuice", layerName: "beetlejuice"},
+     {name: "Psychedelic", layerName: "colour"}
+ ];
+ 
+ var layers = _.map(layers, function(layer) {
+     layer.layer = L.tileLayer('https://idiocy.org/map/{layerName}/{z}/{y}/{x}',
+                               _.defaults({layerName: layer.layerName}, layerAttrs));
+     return layer;
+ });
+
+ var map = L.map('map', {
+     layers: [layers[0].layer],
+     center: [0, 0],
+     zoom: 1
+ });
+ 
+ var baseLayers = _.reduce(layers, function(output, layer) {
+     output[layer.name]=layer.layer;
+     return output;
+ }, {});
+
+ L.control.layers(baseLayers).addTo(map);
+</script>
+</div>
+<div id="postamble" class="status">
+                          <table>
+                              <tr>
+                                  <th>t</th>
+                                  <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+                              </tr>
+                              <tr>
+                                  <th>g</th>
+                                  <td><a href='https://github.com/alanthird'>alanthird</a></td>
+                              </tr>
+                              <tr>
+                                  <th>e</th>
+                                  <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+                              </tr>
+                          </table>
+</div>
+</body>
+</html>

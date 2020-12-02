@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2020-12-02 Wed 16:24 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emacs, fonts and fontsets</title>
+<meta name="generator" content="Org mode">
+<meta name="author" content="Alan Third">
+                     <link rel='stylesheet' type='text/css' href='/common/idiocy.css'>
+                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+</head>
+<body>
+<div id="preamble" class="status">
+                         <a href='/'>
+                           <img src='/common/logo.svg' alt='idiocy.org'>
+                         </a>
+</div>
+<div id="content">
+<header>
+<h1 class="title">Emacs, fonts and fontsets</h1>
+</header><p>
+Yuan Fu has very kindly <a href="https://archive.casouri.co.uk/note/2019/emacs-%E5%AD%97%E4%BD%93%E4%B8%8E%E5%AD%97%E4%BD%93%E9%9B%86/index.html">translated this article into Chinese</a>.
+</p>
+
+<p>
+One problem I've had with Emacs is understanding how the font system
+works. It's always been clear that fontsets are the answer to a lot of
+my problems, but I really struggled to work out how to use it. Here I
+plan to note what I've learned about how to set fonts in Emacs.
+</p>
+
+<div id="outline-container-orgec2e944" class="outline-2">
+<h2 id="orgec2e944">Setting the default</h2>
+<div class="outline-text-2" id="text-orgec2e944">
+<p>
+There appear to be as many ways to set the default font as there are
+users of Emacs, but I've gone with this option:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-face-attribute 'default nil <span style="color: #e5786d;">:font</span> <span style="color: #95e454;">"Droid Sans Mono"</span>)
+</pre>
+</div>
+
+<p>
+This modifies the <code>default</code> fontset, therefore setting the font in
+all frames.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd920bda" class="outline-2">
+<h2 id="orgd920bda">Setting fall-back fonts</h2>
+<div class="outline-text-2" id="text-orgd920bda">
+<p>
+But what if you use the same configuration on multiple boxes, or the
+font you choose doesn't provide all the glyphs you need? By default
+Emacs will search through the existing fonts until it finds one that
+contains the glyph, but this can be a fairly haphazard affair and
+can also be really slow<sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>.
+</p>
+
+<p>
+Emacs allows you to specify fall-backs yourself. To do this for the
+default fontset you could do something like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-fontset-font t nil <span style="color: #95e454;">"Courier New"</span> nil 'append)
+</pre>
+</div>
+
+<p>
+Using a first argument of <code>t</code> means it updates the default fontset.
+It is possible to create other fontsets and use them, but I've never
+had much luck with that and prefer to just modify the default. The
+second argument is the glyph range, which we will come back to
+later. The last argument, <code>append</code>, tells Emacs to add this font to
+the end of the fontset, so it will be searched after any other fonts
+in the set. You can also use <code>prepend</code>, which puts the font first in
+the list, although after the default set with <code>set-face-attribute</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org3489ac7" class="outline-2">
+<h2 id="org3489ac7">Setting fonts for specific glyphs</h2>
+<div class="outline-text-2" id="text-org3489ac7">
+<p>
+Back to that second argument, the glyph range one. You can specify a
+single glyph, a range of glyphs, a character set name, or a
+language.
+</p>
+
+<p>
+Say you want to set 😊 to use a specific font.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-fontset-font t ?&#128522; <span style="color: #95e454;">"Segoe UI Emoji"</span>)
+</pre>
+</div>
+
+<p>
+Or you can set ranges.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-fontset-font t '(?&#128522; . ?&#128526;) <span style="color: #95e454;">"Segoe UI Emoji"</span>)
+</pre>
+</div>
+
+<p>
+You can't set ASCII characters this way, Emacs won't let you.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgbfa0bab" class="outline-2">
+<h2 id="orgbfa0bab">Setting fonts for different character sets or languages</h2>
+<div class="outline-text-2" id="text-orgbfa0bab">
+<p>
+Lets say you deal with Thai writing a lot but your default font
+doesn't support it, or you just really like the look of another font
+for Thai writing.
+</p>
+
+<p>
+Have a look at <code>script-representative-chars</code> and
+<code>list-charset-chars</code> to see if what you're looking for is listed,
+then use that name. Alternatively, use <code>describe-char</code> on one of the
+characters in question and look at the <b>charset</b> or <b>script</b>
+entries.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-fontset-font t 'thai <span style="color: #95e454;">"Noto Sans Thai"</span>)
+</pre>
+</div>
+
+<p>
+This can result in enormous speed-ups as Emacs no longer has to run
+through hundreds of fonts looking for a compatible one.
+</p>
+
+<p>
+If you need to set a fall-back font for Thai writing then you just
+do it the same as above.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-fontset-font t 'thai <span style="color: #95e454;">"Leelawadee UI"</span> nil 'append)
+</pre>
+</div>
+
+<p>
+The downside of this is that if you're using your configuration on
+machines that don't have these fonts then it won't even bother
+searching for a compatible font and will just give you a row of
+boxes. But don't worry, we can force Emacs to search by using
+<code>font-spec</code>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-fontset-font t 'thai (font-spec <span style="color: #e5786d;">:script</span> 'thai) nil 'append)
+</pre>
+</div>
+
+<p>
+You can put whatever you want in that call to <code>font-spec</code> and Emacs
+will search through the fonts to find something suitable. There's no
+reason why you couldn't use <code>font-spec</code> to set a specific font.
+</p>
+
+<p>
+So our completed configuration for Thai writing now looks like this:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-fontset-font t 'thai <span style="color: #95e454;">"Noto Sans Thai"</span>)
+(set-fontset-font t 'thai <span style="color: #95e454;">"Leelawadee UI"</span> nil 'append)
+(set-fontset-font t 'thai (font-spec <span style="color: #e5786d;">:script</span> 'thai) nil 'append)
+</pre>
+</div>
+
+<p>
+Note that you can only <code>append</code> or <code>prepend</code> a font when there is
+already something set for that glyph or range, which makes sense,
+but I originally thought I was appending to one big list in the
+fontset rather than to one of a set of lists and couldn't understand
+why it wasn't working.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9cc24bd" class="outline-2">
+<h2 id="org9cc24bd">How to check if a font is installed</h2>
+<div class="outline-text-2" id="text-org9cc24bd">
+<p>
+Rather than relying on the fall-back behaviour, you can check
+whether a font is installed before trying to use it. This is pretty
+straight forward as all available font families are available from
+<code>font-family-list</code><sup><a id="fnr.2" class="footref" href="#fn.2">2</a></sup>, so you can just check the list:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(member <span style="color: #95e454;">"Noto Sans"</span> (font-family-list))
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgea93ef0" class="outline-2">
+<h2 id="orgea93ef0">Appendix</h2>
+<div class="outline-text-2" id="text-orgea93ef0">
+<p>
+I set up some basic fall-backs to <a href="https://www.google.com/get/noto/">Noto</a> fonts for various languages
+to try speeding up navigating Emacs's Hello file (<code>C-h h</code>). Because
+there are no fall-backs set for these fonts, if I used this
+configuration on a computer without the fonts then I'd just see lots
+of empty boxes everywhere, but it might give you a head-start in
+setting up your own configuration.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(set-face-attribute 'default nil <span style="color: #e5786d;">:font</span> <span style="color: #95e454;">"Droid Sans Mono"</span>)
+
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">Latin</span>
+(set-fontset-font t 'latin <span style="color: #95e454;">"Noto Sans"</span>)
+
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">East Asia: &#20320;&#22909;, &#26089;&#26216;, &#12371;&#12435;&#12395;&#12385;&#12399;, &#50504;&#45397;&#54616;&#49464;&#50836;</span>
+<span style="color: #99968b;">;;</span>
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">Make sure you use the right font. See</span>
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">https://www.google.com/get/noto/help/cjk/.</span>
+<span style="color: #99968b;">;;</span>
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">This font requires "Regular". Other Noto fonts dont.</span>
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">&#175;\_(&#12484;)_/&#175;</span>
+(set-fontset-font t 'han <span style="color: #95e454;">"Noto Sans CJK SC Regular"</span>)
+(set-fontset-font t 'kana <span style="color: #95e454;">"Noto Sans CJK JP Regular"</span>)
+(set-fontset-font t 'hangul <span style="color: #95e454;">"Noto Sans CJK KR Regular"</span>)
+(set-fontset-font t 'cjk-misc <span style="color: #95e454;">"Noto Sans CJK KR Regular"</span>)
+
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">South East Asia: &#6023;&#6086;&#6042;&#6070;&#6036;&#6047;&#6077;&#6042;, &#3754;&#3760;&#3738;&#3762;&#3725;&#3732;&#3765;, &#4121;&#4100;&#4154;&#4153;&#4098;&#4124;&#4140;&#4117;&#4139;, &#3626;&#3623;&#3633;&#3626;&#3604;&#3637;&#3588;&#3619;&#3633;&#3610;</span>
+(set-fontset-font t 'khmer <span style="color: #95e454;">"Noto Sans Khmer"</span>)
+(set-fontset-font t 'lao <span style="color: #95e454;">"Noto Sans Lao"</span>)
+(set-fontset-font t 'burmese <span style="color: #95e454;">"Noto Sans Myanmar"</span>)
+(set-fontset-font t 'thai <span style="color: #95e454;">"Noto Sans Thai"</span>)
+
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">Africa: &#4640;&#4619;&#4637;</span>
+(set-fontset-font t 'ethiopic <span style="color: #95e454;">"Noto Sans Ethiopic"</span>)
+
+<span style="color: #99968b;">;; </span><span style="color: #99968b;">Middle/Near East: &#1513;&#1500;&#1493;&#1501;, &#1575;&#1604;&#1587;&#1617;&#1604;&#1575;&#1605; &#1593;&#1604;&#1610;&#1603;&#1605;</span>
+(set-fontset-font t 'hebrew <span style="color: #95e454;">"Noto Sans Hebrew"</span>)
+(set-fontset-font t 'arabic <span style="color: #95e454;">"Noto Sans Arabic"</span>)
+
+<span style="color: #99968b;">;;  </span><span style="color: #99968b;">South Asia: &#2728;&#2734;&#2744;&#2765;&#2724;&#2759;, &#2344;&#2350;&#2360;&#2381;&#2340;&#2375;, &#3240;&#3246;&#3256;&#3277;&#3221;&#3262;&#3248;, &#3368;&#3374;&#3384;&#3405;&#3349;&#3390;&#3376;&#3330;, &#2870;&#2881;&#2851;&#2879;&#2860;&#2887;,</span>
+<span style="color: #99968b;">;;              </span><span style="color: #99968b;">&#3462;&#3514;&#3540;&#3510;&#3549;&#3520;&#3505;&#3530;, &#2997;&#2979;&#2965;&#3021;&#2965;&#2990;&#3021;, &#3112;&#3118;&#3128;&#3149;&#3093;&#3134;&#3120;&#3074;, &#3926;&#3904;&#4018;&#3851;&#3940;&#3954;&#3942;&#3851;&#3926;&#3921;&#3962;&#3851;&#3939;&#3962;&#3906;&#3942;&#3854;</span>
+(set-fontset-font t 'gujarati <span style="color: #95e454;">"Noto Sans Gujarati"</span>)
+(set-fontset-font t 'devanagari <span style="color: #95e454;">"Noto Sans Devanagari"</span>)
+(set-fontset-font t 'kannada <span style="color: #95e454;">"Noto Sans Kannada"</span>)
+(set-fontset-font t 'malayalam <span style="color: #95e454;">"Noto Sans Malayalam"</span>)
+(set-fontset-font t 'oriya <span style="color: #95e454;">"Noto Sans Oriya"</span>)
+(set-fontset-font t 'sinhala <span style="color: #95e454;">"Noto Sans Sinhala"</span>)
+(set-fontset-font t 'tamil <span style="color: #95e454;">"Noto Sans Tamil"</span>)
+(set-fontset-font t 'telugu <span style="color: #95e454;">"Noto Sans Telugu"</span>)
+(set-fontset-font t 'tibetan <span style="color: #95e454;">"Noto Sans Tibetan"</span>)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2342a12" class="outline-2">
+<h2 id="org2342a12">Updates</h2>
+<div class="outline-text-2" id="text-org2342a12">
+<p>
+Updated 31/3/2019. Thanks to <a href="https://archive.casouri.co.uk/note/index.html">Yuan Fu</a> for his suggestions.
+</p>
+
+<p>
+Updated 1/4/2019. Added link to Chinese translation.
+</p>
+
+<p>
+Updated 31/12/2019. Sebastian Urban has sent me a more
+<a href="https://gist.github.com/alanthird/7152752d384325a83677f4a90e1e1a05">complete Noto font set‐up</a>. He says:
+</p>
+
+<blockquote>
+<p>
+I found your post "Emacs, fonts and fontsets" helpful, but I thought
+why stop there. Because there are other Noto Sans fonts, I decided
+to make as complete list as possible. It has form of
+"(set-fontset-font "default-fontset" 'SCRIPTNAME "Noto Sans FONT")".
+I didn't include "Noto Sans Symbols" and "Noto Sans Symbols2" and
+I'm using "Noto Sans CJK SC Regular" for 'cjk-misc.
+</p>
+
+<p>
+Also because it takes a lot of space, I keep them in separate file
+and load with "(load &#x2026;)" from my init.
+</p>
+</blockquote>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara">Emacs has a default fall-back to
+<a href="http://users.teilar.gr/~g1951d/">Symbola</a>, so it's a good idea to install it to save searching through
+the entire set of fonts.</div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2">2</a></sup> <div class="footpara">Check out <a href="http://ergoemacs.org/emacs/emacs_list_and_set_font.html">Xah Lee's Font Setup page</a> for more
+information.</div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+                          <table>
+                              <tr>
+                                  <th>t</th>
+                                  <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+                              </tr>
+                              <tr>
+                                  <th>g</th>
+                                  <td><a href='https://github.com/alanthird'>alanthird</a></td>
+                              </tr>
+                              <tr>
+                                  <th>e</th>
+                                  <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+                              </tr>
+                          </table>
+</div>
+</body>
+</html>

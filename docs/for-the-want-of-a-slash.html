@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2020-12-02 Wed 16:24 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For the want of a slash</title>
+<meta name="generator" content="Org mode">
+<meta name="author" content="Alan Third">
+                     <link rel='stylesheet' type='text/css' href='/common/idiocy.css'>
+                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+</head>
+<body>
+<div id="preamble" class="status">
+                         <a href='/'>
+                           <img src='/common/logo.svg' alt='idiocy.org'>
+                         </a>
+</div>
+<div id="content">
+<header>
+<h1 class="title">For the want of a slash</h1>
+</header><p>
+Last week at work we had a minor issue with our public website. We're
+using Drupal with a MySQL backend and <code>mysqldump</code> for backups which
+we're then compressing, and, in an act of idiocy, are storing on the
+same drive. We hadn't run into any problems previously because the
+database is supposed to be <i>significantly</i> smaller than the disk and
+always has been<sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>.
+</p>
+
+<p>
+Until last week.
+</p>
+
+<div id="outline-container-org55a3f49" class="outline-2">
+<h2 id="org55a3f49">Friday</h2>
+<div class="outline-text-2" id="text-org55a3f49">
+<p>
+Towards the end of the week I got a resigned phone call from our
+web-team saying that the site was down and could I have a look to see
+if I could bring it back up. After a little poking about I realised
+that the disk had run out of space, so I deleted some spare backups
+and old binary logs that hadn't been recycled yet and the website
+sprang back to life.
+</p>
+
+<p>
+After some investigation we found a table called <code>cache_metatags</code> that
+was about three times the size of the rest of the database. I
+discussed it with our web-team lead and we decided to look into it on
+Monday. Surely there would be enough disk space for it to last two
+days?
+</p>
+
+<p>
+Ah, the hubris of Friday afternoon IT support staff.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org560d8f9" class="outline-2">
+<h2 id="org560d8f9">Monday</h2>
+<div class="outline-text-2" id="text-org560d8f9">
+<p>
+So the website was down. It had run out of disk space as soon as it
+started running the backup on Friday evening and then spent the next
+two days floundering and being generally unhelpful. We don't do
+support on weekends, so there wasn't anyone around to fix it.
+</p>
+
+<p>
+I started by clearing some disk space and it leapt back into life
+almost immediately. Then our web-team lead cleared the Drupal caches
+and that brought the <code>cache_metatags</code> table down to a few kilobytes.
+</p>
+
+<p>
+I ran a backup immediately, just to be sure.
+</p>
+
+<p>
+Looking at the backup log I noticed that the (compressed) database
+backup from the previous Tuesday was significantly larger than the
+backup from the night before. Nobody could think of anything that had
+changed then, and we thought that the increase in the size of the
+Metatag cache was probably the culprit.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org113e2ba" class="outline-2">
+<h2 id="org113e2ba">The Metatag module</h2>
+<div class="outline-text-2" id="text-org113e2ba">
+<p>
+The Metatag module seems to be used for putting ‘meta tags’ into the
+html output of the site. I know little about this arcane art, but
+apparently they’re useful for search-engines. The module then caches
+the meta tags for each page that Drupal renders so it doesn’t have to
+recreate them every time someone views the page. I found a discussion
+about it caching the tags for 404 pages, which could result in a lot
+of excess cached data if someone hit the site with a lot of junk URLs,
+but this issue appears to have been fixed, so that was ruled out.
+</p>
+
+<p>
+To see if I could spot anything unusual I went to the Apache log files
+and immediately noticed something. There were an excessive number of
+logfiles from Tuesday and Wednesday. We rotate them when they reach
+five megabytes, and rarely get through more than two or three in a
+day. (There’s a Varnish caching proxy in front of the web server that
+catches most requests, so the traffic reaching the back-end is,
+generally, fairly low.) We had about <i>thirty</i> for these two days.
+Something was clearly not right.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org1fff3b2" class="outline-2">
+<h2 id="org1fff3b2">The logs</h2>
+<div class="outline-text-2" id="text-org1fff3b2">
+<p>
+The logs were full of entries with extremely long paths, and they
+seemed to consist of repeating segments, like:
+</p>
+
+<pre class="example">
+/news/2015/apr/sites/all/modules/fwia/css/sites/all/modules/fwia/css/sites/all/modules/fwia/css/fwia.png
+</pre>
+
+<p>
+There were thousands of them and they all seemed to come from one
+search engine optimisation web crawler. I don't know why it was
+crawling our site, but it seemed to have got caught in some sort of
+recursive loop and hammered through thousands<sup><a id="fnr.2" class="footref" href="#fn.2">2</a></sup> of
+these URLs over the course of about two days.
+</p>
+
+<p>
+Our web-team lead immediately recognised the partial URLs and that it
+was related to an image that a module was putting on certain pages. He
+also knew that the image was broken on certain pages, but hadn't
+investigated it yet. Once I knew where to look it didn't take me long
+to work out what had happened.
+</p>
+
+<p>
+The image URL was missing a leading <code>/</code>, which meant that instead of
+looking for the image in <code>/sites/all/modules/fwia/css/</code>, it was
+looking in <code>/news/2015/apr/sites/all/modules/fwia/css/</code>. For some
+reason the pages under <code>/news</code> handle any extra data in the path by
+ignoring it and displaying the first working URL. This meant that the
+site displayed <code>/news/2015/apr/sites/all/modules/fwia/css/</code> exactly
+the same as <code>/news/2015/apr</code>, and the broken image URL was:
+</p>
+
+<pre class="example">
+/news/2015/apr/sites/all/modules/fwia/css/sites/all/modules/fwia/css/fwia.png
+</pre>
+
+<p>
+which also happily displayed the same, along with it's own broken
+image URL.
+</p>
+
+<p>
+The crawler dutifully followed these broken links, and many others
+that lead from these pages<sup><a id="fnr.3" class="footref" href="#fn.3">3</a></sup>, until,
+presumably, the URLs got too long or it finally hit its, rather large,
+depth limit, all the while generating data for the Metatag module to
+cache.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orge042bcc" class="outline-2">
+<h2 id="orge042bcc">The moral</h2>
+<div class="outline-text-2" id="text-orge042bcc">
+<p>
+Don't backup to the same disk as your data is on, that's just stupid.
+</p>
+
+<p>
+The problems here are manifold, and we'll be working to fix as many as
+we can, but it amuses me that a single missing <code>/</code> could result in a
+perfect storm of small issues and take our website down for over two
+days.
+</p>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara">There's some history to this setup, but this is
+the current state of things.</div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2">2</a></sup> <div class="footpara">Probably tens or
+hundreds of thousands. I didn't take the time to try counting</div></div>
+
+<div class="footdef"><sup><a id="fn.3" class="footnum" href="#fnr.3">3</a></sup> <div class="footpara">The news pages are paginated.</div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+                          <table>
+                              <tr>
+                                  <th>t</th>
+                                  <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+                              </tr>
+                              <tr>
+                                  <th>g</th>
+                                  <td><a href='https://github.com/alanthird'>alanthird</a></td>
+                              </tr>
+                              <tr>
+                                  <th>e</th>
+                                  <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+                              </tr>
+                          </table>
+</div>
+</body>
+</html>

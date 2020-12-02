@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2020-12-02 Wed 16:24 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Return to the planet of the JavaScript Primes</title>
+<meta name="generator" content="Org mode">
+<meta name="author" content="Alan Third">
+                     <link rel='stylesheet' type='text/css' href='/common/idiocy.css'>
+                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: {extensions: ["color.js"]}})</script>
+                                 <script type='text/x-mathjax-config'>
+                                   MathJax.Hub.Config({
+                                     'SVG': {
+                                       font: 'Latin-Modern'
+                                     }
+                                   });
+                                 </script>
+                                 <script type='text/javascript'
+                                         src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG-full'></script>
+</head>
+<body>
+<div id="preamble" class="status">
+                         <a href='/'>
+                           <img src='/common/logo.svg' alt='idiocy.org'>
+                         </a>
+</div>
+<div id="content">
+<header>
+<h1 class="title">Return to the planet of the JavaScript Primes</h1>
+</header><p>
+I finally broke down and decided to do the sensible thing: implement
+Eratosthenes’ Sieve in JavaScript.
+</p>
+
+<div id="outline-container-orgc9874ed" class="outline-2">
+<h2 id="orgc9874ed">Eratosthenes of Cyrene</h2>
+<div class="outline-text-2" id="text-orgc9874ed">
+
+<figure>
+<img src="return-to-javascript-primes/Eratosthenes.jpg" alt="Eratosthenes.jpg">
+
+<figcaption><span class="figure-number">Figure 1: </span>Eratosthenes</figcaption>
+</figure>
+
+<p>
+Eratosthenes was an over‐achieving Greek polymath. Born in Cyrene in
+Greek north Africa around 276ʙᴄ, he, among other things, invented the
+discipline of geography, accurately measured the circumference of the
+Earth and gave us the leap year. He also came up with his eponymous
+sieve: a quick way of finding prime numbers.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org1bc5efb" class="outline-2">
+<h2 id="org1bc5efb">Sieve it</h2>
+<div class="outline-text-2" id="text-org1bc5efb">
+<p>
+The sieve works by removing composite (non‐prime) numbers from the set
+of the natural numbers by <i>seiving</i> out the multiples of each prime,
+one prime at a time.
+</p>
+
+<p>
+Lets start with the numbers from two to twenty:
+</p>
+
+<p>
+\[\{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20\}\]
+</p>
+
+<p>
+Two is a prime, so we remove any numbers greater than two that have
+it as a divisor:
+</p>
+
+<p>
+\[
+\{2, 3, {\color{red}4}, 5, {\color{red}6}, 7, {\color{red}8}, 9, {\color{red}10},
+ 11, {\color{red}12}, 13, {\color{red}14}, 15, {\color{red}16}, 17, {\color{red}18},
+ 19, {\color{red}20}\}
+\]
+</p>
+
+<p>
+The next number that’s not already been sieved out, three, must be a
+prime, so we repeat the procedure for two and remove any multiples:
+</p>
+
+<p>
+\[\{2, 3, 5, 7, {\color{red}9}, 11, 13, {\color{red}15}, 17, 19\}\]
+</p>
+
+<p>
+Six, being divisible by two, is already removed, as are twelve and
+eighteen, so the only numbers we remove this time are nine and
+fifteen.
+</p>
+
+<p>
+Five is the next number still in the list, but we don’t have any
+numbers left that are divisible by it. In fact, because \(5^2\) is
+greater than our biggest number, twenty, we know that we can stop
+looking for primes. If our numbers continued up further we would
+remove twenty‐five, thirty, thirty‐five, and so on, then move onto
+multiples of seven. As it stands, our list is now:
+</p>
+
+<p>
+\[\{2, 3, 5, 7, 11, 13, 17, 19\}\]
+</p>
+
+<p>
+i.e. all the prime numbers under twenty-one.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb0224df" class="outline-2">
+<h2 id="orgb0224df">Solve it</h2>
+<div class="outline-text-2" id="text-orgb0224df">
+<p>
+Implementation is rather straight‐forward. We create an array of a set
+size and step through the algorithm outlined above.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">seive</span>(<span style="color: #cae682;">primeList</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">p</span> = 2 ; p &lt; primeList.length ; p++) {
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (primeList[p]) {
+      <span style="color: #99968b;">// </span><span style="color: #99968b;">Only do this if p is marked as a prime</span>
+
+      <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">n</span> = p*2 ; n &lt; primeList.length ; n = n+p) {
+        <span style="color: #99968b;">// </span><span style="color: #99968b;">increase n by p each time so we step through each integer</span>
+        <span style="color: #99968b;">// </span><span style="color: #99968b;">that can be divided by p, and, of course, if it's divisible</span>
+        <span style="color: #99968b;">// </span><span style="color: #99968b;">by p, then it's not prime</span>
+        primeList[n] = <span style="color: #e5786d;">false</span>;
+      }
+    }
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">return</span> primeList;
+}
+
+<span style="color: #99968b;">// </span><span style="color: #99968b;">0 and 1 are never prime</span>
+<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">primeList</span> = [<span style="color: #e5786d;">false</span>, <span style="color: #e5786d;">false</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>,
+                 <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>,
+                 <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>, <span style="color: #e5786d;">true</span>];
+
+primeList = seive(primeList);
+
+<span style="color: #99968b;">// </span><span style="color: #99968b;">0 &#8594; false, 1 &#8594; false, 2 &#8594; true, 3 &#8594; true, 4 &#8594; false, 5 &#8594; true, &amp;c.</span>
+</pre>
+</div>
+
+<p>
+Now we can just do a simple, very fast, look‐up on the array to find
+out if a number is a prime or not.
+</p>
+
+<p>
+The problem with this method is that we have to decide ahead of time
+what the largest number we can check is; if we want to increase our
+look‐up table range, we have to go back to the beginning and start
+again. It’s also rather inefficient if we just want to check one, very
+large, number as we’d potentially have to calculate every prime up to
+that number.
+</p>
+
+<p>
+Large look‐up tables could also use a significant amount of memory and
+take a long time to create.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org2faddcf" class="outline-2">
+<h2 id="org2faddcf">Save it</h2>
+<div class="outline-text-2" id="text-org2faddcf">
+<p>
+The solution is to use a hybrid approach. For small numbers we
+generate a look‐up table, and for larger numbers we use something like
+the <a href="https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test">Miller‐Rabin</a> algorithm<sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">P</span> = (<span style="color: #8ac6f2; font-weight: bold;">function</span>(<span style="color: #cae682;">lookupSize</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">lookup</span> = <span style="color: #e5786d;">null</span>;
+
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">millerRabin</span>(<span style="color: #cae682;">n</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">isOdd</span>(<span style="color: #cae682;">n</span>) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> n%2===1;
+    }
+
+    <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">rnd</span>(<span style="color: #cae682;">floor</span>, <span style="color: #cae682;">ceil</span>) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> floor+Math.floor(Math.random()*(ceil-floor));
+    }
+
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">A custom exponentiation function. Raising numbers to large</span>
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">powers can very quickly take javascript's numbers out of their</span>
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">linear range, but we only need the modulus of the result, and</span>
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">modular arithmetic allows us to cheat.</span>
+    <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">expmod</span>(<span style="color: #cae682;">base</span>, <span style="color: #cae682;">exponent</span>, <span style="color: #cae682;">mod</span>) {
+      <span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">result</span>=1;
+
+      <span style="color: #8ac6f2; font-weight: bold;">while</span> (exponent &gt; 0) {
+        <span style="color: #8ac6f2; font-weight: bold;">if</span> (isOdd(exponent)) {
+          result=result*base%mod;
+          exponent--;
+        }
+
+        base=base*base%mod;
+        exponent=exponent/2;
+      }
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> result;
+    }
+
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">This check finds whether the number is composite. If it fails</span>
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">to find the number composite it doesn't mean it's definitely</span>
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">prime. It gets run several times for each number we want to</span>
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">check so as to reduce the chances we give a false positive.</span>
+    <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">test</span>(<span style="color: #cae682;">q</span>, <span style="color: #cae682;">s</span>) {
+      <span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">a</span>=rnd(1, n-1);
+      <span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">apowq</span>=expmod(a, q, n);
+
+      <span style="color: #8ac6f2; font-weight: bold;">if</span> (apowq===1 || apowq===n-1) <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">true</span>;
+
+      <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">i</span>=1 ; i &lt; s ; i++) {
+        <span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">t</span>=expmod(apowq, 1 &lt;&lt; i, n);
+
+        <span style="color: #8ac6f2; font-weight: bold;">if</span> (t===n-1 || t===1) {
+          <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">true</span>;
+        }
+      }
+
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">false</span>;
+    }
+
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">q</span>=n-1, <span style="color: #cae682;">s</span>=0 ; !isOdd(q) ; q/=2, s++);
+
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">Check up to twenty times</span>
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">i</span>=0, <span style="color: #cae682;">t</span>=<span style="color: #e5786d;">true</span> ; i&lt;20 &amp;&amp; t ; i++)
+      t=t &amp;&amp; test(q, s);
+
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> t;
+  }
+
+  <span style="color: #99968b;">// </span><span style="color: #99968b;">initialise the array</span>
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">initLookup</span>(<span style="color: #cae682;">size</span>) {
+    l = Array(size);
+    l[0] = <span style="color: #e5786d;">false</span>;
+    l[1] = <span style="color: #e5786d;">false</span>;
+
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">i</span> = 2 ; i &lt; size ; i++) {
+      l[i] = <span style="color: #e5786d;">true</span>;
+    }
+
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> l;
+  }
+
+  <span style="color: #99968b;">// </span><span style="color: #99968b;">Seive out the composites</span>
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">seive</span>(<span style="color: #cae682;">primeList</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">p</span> = 2 ; p*p &lt; primeList.length ; p++) {
+      <span style="color: #8ac6f2; font-weight: bold;">if</span> (primeList[p]) {
+        <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">n</span> = p*2 ; n &lt; primeList.length ; n = n+p) {
+          primeList[n] = <span style="color: #e5786d;">false</span>;
+        }
+      }
+    }
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> primeList;
+  }
+
+  <span style="color: #99968b;">// </span><span style="color: #99968b;">Test divide against some low numbers</span>
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">divisionTest</span>(<span style="color: #cae682;">n</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">primes</span> = [2, 3, 5, 7];
+    <span style="color: #8ac6f2; font-weight: bold;">for</span> (<span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">i</span> = 0 ; i &lt; primes.length ; i++) {
+      <span style="color: #8ac6f2; font-weight: bold;">if</span> (n%primes[i] === 0) {
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">false</span>;
+      }
+    }
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">true</span>;
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">isPrime</span>(<span style="color: #cae682;">n</span>) {
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">Generate lookup when it's first required</span>
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (lookup === <span style="color: #e5786d;">null</span>) {
+      lookup = seive(initLookup(lookupSize));
+    }
+
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">For our purposes negative primes are the same as positive</span>
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">primes</span>
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (n &lt; 0) {
+      n = -n;
+    }
+
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (n &lt; lookupSize) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> lookup[n];
+    }
+
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">If the division test doesn't detect a composite, use</span>
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">miller-rabin</span>
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (divisionTest(n)) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> millerRabin(n);
+    }
+
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">false</span>;
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">return</span> {
+    isPrime: isPrime
+  };
+})(500000); <span style="color: #99968b;">// </span><span style="color: #99968b;">Lookup size is half a million</span>
+</pre>
+</div>
+
+<p>
+Try it out:
+</p>
+
+<input type="number" id="testNum" value="137">
+<input type="button" id="testButton" value="is it prime?">
+<span id="result"></span>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script type="text/javascript" src="return-to-javascript-primes/prime.js"></script>
+<script type="text/javascript" src="return-to-javascript-primes/test.js"></script>
+
+<script type="text/javascript">
+</script>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara">Because the Miller‐Rabin function
+squares numbers, and javascript uses sixty‐four bit floats
+(fifty‐three bit precision), you can’t safely check numbers larger
+than \(2^{26}\) (67,108,864).</div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+                          <table>
+                              <tr>
+                                  <th>t</th>
+                                  <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+                              </tr>
+                              <tr>
+                                  <th>g</th>
+                                  <td><a href='https://github.com/alanthird'>alanthird</a></td>
+                              </tr>
+                              <tr>
+                                  <th>e</th>
+                                  <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+                              </tr>
+                          </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2020-12-02 Wed 16:24 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Let’s go write a Lisp ‐ part one</title>
+<meta name="generator" content="Org mode">
+<meta name="author" content="Alan Third">
+                     <link rel='stylesheet' type='text/css' href='/common/idiocy.css'>
+                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                                 <script type='text/x-mathjax-config'>
+                                   MathJax.Hub.Config({
+                                     'SVG': {
+                                       font: 'Latin-Modern'
+                                     }
+                                   });
+                                 </script>
+                                 <script type='text/javascript'
+                                         src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG-full'></script>
+</head>
+<body>
+<div id="preamble" class="status">
+                         <a href='/'>
+                           <img src='/common/logo.svg' alt='idiocy.org'>
+                         </a>
+</div>
+<div id="content">
+<header>
+<h1 class="title">Let’s go write a Lisp ‐ part one</h1>
+</header><p>
+I’m going to write my own Lisp in JavaScript. To be honest, it’s not
+going to be a real lisp, we won’t have pairs (although we can fake
+them if we want) and we’ll be using JavaScript’s types and other
+bits and bobs. This type of interpreter is known as a <a href="https://en.wikipedia.org/wiki/Meta-circular_evaluator">meta‐circular
+evaluator</a>.
+</p>
+
+<div id="outline-container-org842091a" class="outline-2">
+<h2 id="org842091a">What do we need to do?</h2>
+<div class="outline-text-2" id="text-org842091a">
+<p>
+There are five main parts to our Lisp:
+</p>
+
+<ol class="org-ol">
+<li>Lex</li>
+<li>Parse</li>
+<li>Apply</li>
+<li>Evaluate</li>
+<li>Some built‐in functions</li>
+</ol>
+
+<p>
+The lexer and parser could be combined, but I want to do them
+separately for simplicity’s sake.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgaf94fdc" class="outline-2">
+<h2 id="orgaf94fdc">The lexer</h2>
+<div class="outline-text-2" id="text-orgaf94fdc">
+<p>
+A lexer basically just takes a string and cuts it up into the smallest
+bits we can use, which are called tokens. This means we need to work
+out what will count as a token, and how we can tell them apart. Since
+lisp is quite simple there aren’t too many bits.
+</p>
+
+<dl class="org-dl">
+<dt>Brackets</dt><dd>Used to define lists: ( and ).</dd>
+<dt>String</dt><dd>Starts and ends with a double quote: "like this".</dd>
+<dt>Number</dt><dd>Starts with a number: 22.</dd>
+<dt>Symbol</dt><dd>Starts with any other character and can contain anything
+but a closing bracket or white‐space.</dd>
+</dl>
+
+<p>
+And they’re separated by any number of white‐space characters. A
+closing bracket always ends a list, even if it’s butted up against a
+preceding token.
+</p>
+
+<p>
+The simplest<sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup> way to handle this is a function we can call to return the
+next token, rather than splitting it up and creating an array of
+tokens. This makes it easy to write a recursive parser.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">lexer</span>(<span style="color: #cae682;">input</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">pos</span> = 0
+
+  <span style="color: #99968b;">/* </span><span style="color: #99968b;">A couple of functions to help us grab the characters.</span><span style="color: #99968b;"> */</span>
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">next</span>() {
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (pos &lt; input.length) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> input.charAt(pos++)
+    }
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">null</span>
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">rewind</span>() {
+    pos--
+  }
+
+  <span style="color: #99968b;">/* </span><span style="color: #99968b;">Return a string.</span>
+<span style="color: #99968b;">   *</span>
+<span style="color: #99968b;">   * Strings are special because they can contain pretty much anything</span>
+<span style="color: #99968b;">   * except a double quote, so we can't break them on spaces.</span><span style="color: #99968b;"> */</span>
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">string</span>() {
+    <span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">token</span> = next()
+    <span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">c</span>
+
+    <span style="color: #8ac6f2; font-weight: bold;">while</span> ((c = next()) != <span style="color: #e5786d;">null</span>) {
+      <span style="color: #8ac6f2; font-weight: bold;">if</span> (c == <span style="color: #95e454;">'"'</span>) {
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> token + c
+      }
+      <span style="color: #99968b;">// </span><span style="color: #99968b;">else</span>
+      token = token + c
+    }
+
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">If we get this far then the string wasn't terminated. I'll let</span>
+<span style="color: #99968b;">     * it slide this time.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> token
+  }
+
+  <span style="color: #99968b;">/* </span><span style="color: #99968b;">I've called this symbol, but it's actually anything that's not a</span>
+<span style="color: #99968b;">   * string or a bracket.</span><span style="color: #99968b;"> */</span>
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">symbol</span>() {
+    <span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">token</span> = <span style="color: #95e454;">""</span>
+    <span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">c</span>
+
+    <span style="color: #8ac6f2; font-weight: bold;">while</span> ((c = next()) != <span style="color: #e5786d;">null</span>) {
+      <span style="color: #99968b;">/* </span><span style="color: #99968b;">Check that the character isn't whitespace or a closing</span>
+<span style="color: #99968b;">       * bracket.</span><span style="color: #99968b;"> */</span>
+      <span style="color: #8ac6f2; font-weight: bold;">if</span> (<span style="color: #95e454;">/[\s\)]/</span>.test(c)) {
+        <span style="color: #99968b;">/* </span><span style="color: #99968b;">This character isn&#8217;t part of the token, so wind it back</span>
+<span style="color: #99968b;">         * into the input.</span><span style="color: #99968b;"> */</span>
+        rewind()
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> token
+      }
+      <span style="color: #99968b;">// </span><span style="color: #99968b;">else</span>
+      token = token + c
+    }
+
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">Again, if we get here we've reached the end of the input.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> token
+  }
+
+  <span style="color: #99968b;">/* </span><span style="color: #99968b;">This is the main function.</span><span style="color: #99968b;"> */</span>
+  <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #8ac6f2; font-weight: bold;">function</span>() {
+    <span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">c</span>
+
+    <span style="color: #8ac6f2; font-weight: bold;">while</span> ((c = next()) != <span style="color: #e5786d;">null</span>) {
+      <span style="color: #8ac6f2; font-weight: bold;">if</span> (<span style="color: #95e454;">/\s/</span>.test(c)) {
+        <span style="color: #99968b;">/* </span><span style="color: #99968b;">Whitespace, we don't care about this, so skip back to the</span>
+<span style="color: #99968b;">         * start of the loop.</span><span style="color: #99968b;"> */</span>
+        <span style="color: #8ac6f2; font-weight: bold;">continue</span>
+      }
+
+      <span style="color: #8ac6f2; font-weight: bold;">if</span> (c == <span style="color: #95e454;">'"'</span>) {
+        <span style="color: #99968b;">// </span><span style="color: #99968b;">It's a string!</span>
+        rewind()
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> string()
+      }
+
+      <span style="color: #99968b;">/* </span><span style="color: #99968b;">If it's a bracket, just return it as-is.</span><span style="color: #99968b;"> */</span>
+      <span style="color: #8ac6f2; font-weight: bold;">if</span> (c == <span style="color: #95e454;">'('</span> || c == <span style="color: #95e454;">')'</span>) {
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> c
+      }
+
+      <span style="color: #99968b;">/* </span><span style="color: #99968b;">It must be a symbol of some sort. We need to rewind otherwise</span>
+<span style="color: #99968b;">       * the first character will get lost.</span><span style="color: #99968b;"> */</span>
+      rewind()
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> symbol()
+    }
+
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">End of input.</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">null</span>;
+  }
+}
+
+<span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">testInput</span> = <span style="color: #95e454;">`(this is (a test) "We must have spaces and ()"</span>
+<span style="color: #95e454;">                   (brackets))`</span>
+<span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">o</span> = []
+<span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">t</span>
+
+<span style="color: #99968b;">/* </span><span style="color: #99968b;">Initialize the lexer.</span><span style="color: #99968b;"> */</span>
+<span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">l</span> = lexer(testInput)
+
+<span style="color: #8ac6f2; font-weight: bold;">while</span> ((t = l()) != <span style="color: #e5786d;">null</span>) {
+  o.push(t)
+}
+
+console.log(o)
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-js">[
+  <span style="color: #95e454;">'('</span>,
+  <span style="color: #95e454;">'this'</span>,
+  <span style="color: #95e454;">'is'</span>,
+  <span style="color: #95e454;">'('</span>,
+  <span style="color: #95e454;">'a'</span>,
+  <span style="color: #95e454;">'test'</span>,
+  <span style="color: #95e454;">')'</span>,
+  <span style="color: #95e454;">'"We must have spaces and ()"'</span>,
+  <span style="color: #95e454;">'('</span>,
+  <span style="color: #95e454;">'brackets'</span>,
+  <span style="color: #95e454;">')'</span>,
+  <span style="color: #95e454;">')'</span>
+]
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4112649" class="outline-2">
+<h2 id="org4112649">Parser</h2>
+<div class="outline-text-2" id="text-org4112649">
+<p>
+It’s at this point that we need to decide what JavaScript types we’re
+using. Instead of lists we’ll just use arrays. We could create a pair
+class and use that for building lists, but I just want to stick with
+basic JavaScript types for this.
+</p>
+
+<p>
+Strings, symbols and numbers will all be their native equivalent, as
+will functions, although we don’t have to worry about them yet.
+</p>
+
+<p>
+The parser steps through the tokens, doing type conversions as we go.
+When it comes across a list it runs a small loop to put the contents
+of the list into an array, calling itself recursively to parse those
+contents.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="org5bac523"><span style="color: #99968b;">/* </span><span style="color: #99968b;">Pass in a tokenizer function.</span><span style="color: #99968b;"> */</span>
+<span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">parser</span>(<span style="color: #cae682;">nextToken</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">string</span>(<span style="color: #cae682;">token</span>) {
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">Strip the quotes off.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> token.replace(<span style="color: #95e454;">/^"|"$/</span>g, <span style="color: #95e454;">''</span>)
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">symbol</span>(<span style="color: #cae682;">token</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> Symbol.<span style="color: #8ac6f2; font-weight: bold;">for</span>(token)
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">number</span>(<span style="color: #cae682;">token</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> parseInt(token, 10)
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">list</span>() {
+    <span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">val</span>
+    <span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">list</span> = []
+
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">Parse each item in the list and put the result into the</span>
+<span style="color: #99968b;">     * array.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">while</span> ((val = parser(nextToken)) != <span style="color: #e5786d;">null</span>) {
+      list.push(val)
+    }
+
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> list
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">t</span> = nextToken()
+
+  <span style="color: #99968b;">/* </span><span style="color: #99968b;">If the token is null we&#8217;ve reached the end of input.</span><span style="color: #99968b;"> */</span>
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (t === <span style="color: #e5786d;">null</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">null</span>
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">first</span> = t.charAt(0)
+
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (first == <span style="color: #95e454;">'('</span>) {
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">It's a list!</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> list()
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">else</span> <span style="color: #8ac6f2; font-weight: bold;">if</span> (first == <span style="color: #95e454;">')'</span>) {
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">End of the current list, so return null.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">null</span>
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">else</span> <span style="color: #8ac6f2; font-weight: bold;">if</span> (<span style="color: #95e454;">/\d/</span>.test(first)) {
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">Congratulations, it's a number!</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> number(t) 
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">else</span> <span style="color: #8ac6f2; font-weight: bold;">if</span> (first == <span style="color: #95e454;">'"'</span>) {
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">And a string.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> string(t)
+  }
+  <span style="color: #99968b;">// </span><span style="color: #99968b;">else</span>
+  <span style="color: #8ac6f2; font-weight: bold;">return</span> symbol(t)
+}
+
+<span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">input</span> = <span style="color: #95e454;">`(testing (the) (parser "is a") lot of (fun))</span>
+<span style="color: #95e454;">               (honest guv &#128521;)`</span>
+
+<span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">l</span> = lexer(input)
+<span style="color: #8ac6f2; font-weight: bold;">let</span> <span style="color: #cae682;">r</span>
+
+<span style="color: #8ac6f2; font-weight: bold;">while</span> ((r = parser(l)) != <span style="color: #e5786d;">null</span>) {
+  console.log(r)
+}
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-js">[
+  Symbol(testing),
+  [ Symbol(the) ],
+  [ Symbol(parser), <span style="color: #95e454;">'is a'</span> ],
+  Symbol(lot),
+  Symbol(of),
+  [ Symbol(fun) ]
+]
+[ Symbol(honest), Symbol(guv), Symbol(&#128521;) ]
+</pre>
+</div>
+
+<p>
+This looks pretty good to me. 😆
+</p>
+
+<p>
+It’s probably worth noting that the lexer keeps going until it runs
+out of characters, but the parser stops after a completed
+s‐expression. This means we may have to run the parser against one
+lexer closure several times before we run out of code to parse.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org2032a68" class="outline-2">
+<h2 id="org2032a68">Functions</h2>
+<div class="outline-text-2" id="text-org2032a68">
+<p>
+I’m going to do this bit out of order, since we can’t actually test
+the evaluator without having some functions.
+</p>
+
+<p>
+I’ll only write enough to do some basic testing.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="org18b6fd7"><span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">functions</span> = {
+  <span style="color: #95e454;">'display'</span>: <span style="color: #8ac6f2; font-weight: bold;">function</span>(...args) {
+    console.log(args.join(<span style="color: #95e454;">' '</span>))
+  },
+  <span style="color: #95e454;">'+'</span>: <span style="color: #8ac6f2; font-weight: bold;">function</span>(...args) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> args.reduce((a, b) =&gt; a + b, 0)
+  },
+  <span style="color: #95e454;">'='</span>: <span style="color: #8ac6f2; font-weight: bold;">function</span>(...args) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> args.reduce((carry, x) =&gt; carry &amp; (args[0] === x), <span style="color: #e5786d;">true</span>)
+  },
+  <span style="color: #95e454;">'if'</span>: <span style="color: #8ac6f2; font-weight: bold;">function</span>(<span style="color: #cae682;">pred</span>, <span style="color: #cae682;">arg1</span>, <span style="color: #cae682;">arg2</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (pred) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> arg1
+    }
+    <span style="color: #99968b;">// </span><span style="color: #99968b;">else</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> arg2
+  }
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge211223" class="outline-2">
+<h2 id="orge211223">Apply and Eval</h2>
+<div class="outline-text-2" id="text-orge211223">
+</div>
+<div id="outline-container-org65dac82" class="outline-3">
+<h3 id="org65dac82">Apply</h3>
+<div class="outline-text-3" id="text-org65dac82">
+<p>
+Apply is a function that takes a function and a list of arguments and
+applies (calls) the function with the arguments. It’s pretty much just
+a wrapper around JavaScript's own apply method.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="orgae7739f"><span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">lispApply</span>(<span style="color: #cae682;">f</span>, <span style="color: #cae682;">args</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (<span style="color: #8ac6f2; font-weight: bold;">typeof</span> f !== <span style="color: #95e454;">"function"</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">throw</span> <span style="color: #95e454;">"APPLY: Unknown function!"</span>
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">return</span> f.apply(<span style="color: #e5786d;">null</span>, args)
+}
+</pre>
+</div>
+
+<p>
+It may seem pointless to have this as a separate function, but it
+should pay‐off later. Hopefully.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orge5ec327" class="outline-3">
+<h3 id="orge5ec327">Evaluator</h3>
+<div class="outline-text-3" id="text-orge5ec327">
+<p>
+The evaluator steps through the parser’s output, recursively
+evaluating everything. It then checks whether the first element in any
+list is a function, and if so, calls apply on it.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="org1061460"><span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">lispEval</span>(<span style="color: #cae682;">item</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (Array.isArray(item)) {
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">We recursively evaluate *all* the arguments.</span><span style="color: #99968b;"> */</span>
+    args = item.map(lispEval)
+
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">The function to be executed will be the first element of the</span>
+<span style="color: #99968b;">     * array 'item' and must be a symbol.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">fname</span> = Symbol.keyFor(args[0])
+
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (functions.hasOwnProperty(fname)) {
+      <span style="color: #99968b;">/* </span><span style="color: #99968b;">It's a known function, so execute it and pass in the</span>
+<span style="color: #99968b;">       * arguments.</span><span style="color: #99968b;"> */</span>
+      <span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">f</span> = functions[fname]
+
+      <span style="color: #8ac6f2; font-weight: bold;">try</span> {
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> lispApply(f, args.slice(1))
+      }
+      <span style="color: #8ac6f2; font-weight: bold;">catch</span>(err) {
+        <span style="color: #8ac6f2; font-weight: bold;">throw</span> err + <span style="color: #95e454;">"\nEVAL: Calling '"</span> + JSON.stringify(item[0]) + <span style="color: #95e454;">"'"</span>
+      }
+    }
+    <span style="color: #8ac6f2; font-weight: bold;">else</span> {
+      <span style="color: #99968b;">/* </span><span style="color: #99968b;">There's no function of that name in the functions object.</span><span style="color: #99968b;"> */</span>
+      <span style="color: #8ac6f2; font-weight: bold;">throw</span> <span style="color: #95e454;">"\nEVAL: Unknown function '"</span> + fname + <span style="color: #95e454;">"'! &#128562;"</span>
+    }
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">else</span> {
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">If the thing we've been passed in isn't an array, we just pass</span>
+<span style="color: #99968b;">     * it straight back.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> item
+  }
+}
+</pre>
+</div>
+
+<p>
+Pretty simple, huh? Let’s test it.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="orgc9d462a">lispEval(parser(lexer(<span style="color: #95e454;">'(display (+ 1 2 3))'</span>)))
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-js">6
+</pre>
+</div>
+
+<p>
+Success! Let’s try a more complex example.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="org41ddd97">lispEval(parser(lexer(<span style="color: #95e454;">'(display (if (= 5 (+ 1 2 3)) "&#128077;" "&#128078;"))'</span>)))
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-js">&#128078;
+</pre>
+</div>
+
+<p>
+\(1+2+3\) does not equal five, so yup, that’s right!
+</p>
+
+<p>
+Again! Again!
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="orgb70e37e">lispEval(parser(lexer(<span style="color: #95e454;">'(if (= 1 1) (display "&#128519;") (display "&#128127;"))'</span>)))
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-js">&#128519;
+&#128127;
+</pre>
+</div>
+
+<p>
+Yes! We’re really on a roll here!
+</p>
+
+<p>
+No, wait… Why did we get both emoji? That’s not right.
+</p>
+
+<p>
+Well, the evaluator evaluates <b>every</b> argument, which means when we
+execute an <code>if</code> both results are evaluated, even though only one value
+will be returned. Alas we can’t just blindly evaluate everything.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7071a43" class="outline-3">
+<h3 id="org7071a43">Special forms</h3>
+<div class="outline-text-3" id="text-org7071a43">
+<p>
+A special form is a piece of code that needs to be treated differently
+from the normal code. <code>If</code> is a case in point: we need to evaluate the
+first argument and then evaluate either the second or third argument
+according to the value of the first.
+</p>
+
+<p>
+This means we need to move the evaluation of arguments out of <code>eval</code>
+into the functions themselves. Or we can save effort when writing
+functions by putting it into <code>apply</code>, and making <code>if</code> extra‐special,
+in that it’s no longer a normal function executed by <code>apply</code> but
+called directly from <code>eval</code>. It can then handle the evaluation of its
+arguments itself.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="org7fd9992"><span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">lispIf</span>(<span style="color: #cae682;">args</span>) {
+  <span style="color: #99968b;">/* </span><span style="color: #99968b;">Test argument 0 and evaluate argument 1 or 2 as appropriate.</span><span style="color: #99968b;"> */</span>
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (lispEval(args[0])) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> lispEval(args[1])
+  }
+  <span style="color: #99968b;">// </span><span style="color: #99968b;">else</span>
+  <span style="color: #8ac6f2; font-weight: bold;">return</span> lispEval(args[2])
+}
+
+<span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">lispApply</span>(<span style="color: #cae682;">f</span>, <span style="color: #cae682;">args</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (<span style="color: #8ac6f2; font-weight: bold;">typeof</span> f !== <span style="color: #95e454;">"function"</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">throw</span> <span style="color: #95e454;">"APPLY: Unknown function!"</span>
+  }
+
+  a = args.map(lispEval)
+  <span style="color: #8ac6f2; font-weight: bold;">return</span> f.apply(<span style="color: #e5786d;">null</span>, a)
+}
+
+<span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">lispEval</span>(<span style="color: #cae682;">item</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (Array.isArray(item)) {
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">We must always eval the function name element of the array as</span>
+<span style="color: #99968b;">     * we have no guarantee it's a plain symbol.</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">fname</span> = Symbol.keyFor(lispEval(item[0]))
+
+    <span style="color: #99968b;">/* </span><span style="color: #99968b;">Check if the function is an "if".</span><span style="color: #99968b;"> */</span>
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (fname === <span style="color: #95e454;">'if'</span>) {
+      lispIf(item.slice(1))
+    }
+    <span style="color: #8ac6f2; font-weight: bold;">else</span> <span style="color: #8ac6f2; font-weight: bold;">if</span> (functions.hasOwnProperty(fname)) {
+      <span style="color: #99968b;">/* </span><span style="color: #99968b;">It's a known function, so execute it and pass in the</span>
+<span style="color: #99968b;">       * (unevaluated) arguments.</span><span style="color: #99968b;"> */</span>
+      <span style="color: #8ac6f2; font-weight: bold;">const</span> <span style="color: #cae682;">f</span> = functions[fname]
+
+      <span style="color: #8ac6f2; font-weight: bold;">try</span> {
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> lispApply(f, item.slice(1))
+      }
+      <span style="color: #8ac6f2; font-weight: bold;">catch</span>(err) {
+        <span style="color: #8ac6f2; font-weight: bold;">throw</span> err + <span style="color: #95e454;">"\nEVAL: Calling '"</span> + JSON.stringify(item[0]) + <span style="color: #95e454;">"'"</span>
+      }
+    }
+    <span style="color: #8ac6f2; font-weight: bold;">else</span> {
+      <span style="color: #8ac6f2; font-weight: bold;">throw</span> <span style="color: #95e454;">"\nEVAL: Unknown function '"</span> + fname + <span style="color: #95e454;">"'! &#128562;"</span>
+    }
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">else</span> {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> item
+  }
+}
+</pre>
+</div>
+
+<p>
+Let’s try again.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js" id="org5716eea">lispEval(parser(lexer(<span style="color: #95e454;">'(if (= 1 1) (display "&#128519;") (display "&#128127;"))'</span>)))
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-js">&#128519;
+</pre>
+</div>
+
+<p>
+Victory!
+</p>
+
+<p>
+If you were writing a simple domain‐specific‐language, this would
+quite likely do you, but to make it a bit more full‐featured, head on
+over to <a href="part-2.html">part two</a>.
+</p>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara">Really, the simplest way is probably to use regular
+expressions, as lisp is simple enough for that to work, but that’s
+cheating.</div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+                          <table>
+                              <tr>
+                                  <th>t</th>
+                                  <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+                              </tr>
+                              <tr>
+                                  <th>g</th>
+                                  <td><a href='https://github.com/alanthird'>alanthird</a></td>
+                              </tr>
+                              <tr>
+                                  <th>e</th>
+                                  <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+                              </tr>
+                          </table>
+</div>
+</body>
+</html>

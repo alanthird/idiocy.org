@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2020-12-02 Wed 16:24 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Javascript primes</title>
+<meta name="generator" content="Org mode">
+<meta name="author" content="Alan Third">
+                     <link rel='stylesheet' type='text/css' href='/common/idiocy.css'>
+                     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                                 <script type='text/x-mathjax-config'>
+                                   MathJax.Hub.Config({
+                                     'SVG': {
+                                       font: 'Latin-Modern'
+                                     }
+                                   });
+                                 </script>
+                                 <script type='text/javascript'
+                                         src='https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG-full'></script>
+</head>
+<body>
+<div id="preamble" class="status">
+                         <a href='/'>
+                           <img src='/common/logo.svg' alt='idiocy.org'>
+                         </a>
+</div>
+<div id="content">
+<header>
+<h1 class="title">Javascript primes</h1>
+</header><p>
+I recently decided to revisit the prime detection code I wrote for the
+<a href="gaussian-prime-spirals.html">Gaussian prime spiral</a> page. The original method I used was the
+Miller-Rabin technique as described in <a href="https://mitpress.mit.edu/sicp/">SICP</a>, but it was recursive and
+could cause a stack overflow quite easily. It also suffered from a
+problem with how Javascript represents integers.
+</p>
+
+<p>
+The Miller-Rabin method makes use of exponentials, which can be broken
+down into a series of repeated squares. In the worst case if you're
+wanting to find out if \(n\) is a prime, you'll perform \((n−1)^2\),
+which can be an issue with large numbers.
+</p>
+
+<p>
+Javascript integers max out at \(2^{53}\), which means the largest
+number you can square and get the correct answer is less than
+\(2^{27}\). Which isn't a terribly large number (134,217,728).
+</p>
+
+<p>
+An alternative, and rather naive, method is to just divide \(n\) by
+every number from \(2\) up to \(n−1\). This is pretty inefficient. You
+can improve it a bit by only checking the prime numbers up to \(\sqrt{n}\).
+This can be achieved quite simply using streams:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">isPrime</span>(<span style="color: #cae682;">n</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">p</span>(<span style="color: #cae682;">n</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> {
+      v: n,
+      <span style="color: #cae682;">n</span>: <span style="color: #8ac6f2; font-weight: bold;">function</span>() {
+        <span style="color: #8ac6f2; font-weight: bold;">for</span> (n+=2 ; !isPrime(n) ; n+=2);
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> p(n);
+      }
+    }
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">pr</span>=p(3);
+
+  <span style="color: #8ac6f2; font-weight: bold;">do</span> {
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (pr.v * pr.v &gt; n) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">true</span>;
+    }
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (n%pr.v===0) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">false</span>;
+    }
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">while</span> (pr=pr.n());
+}
+</pre>
+</div>
+
+<p>
+This is pretty cool, you create a stream of prime numbers (starting
+from 3) and check against each one. The definition of the prime
+stream relies on the isPrime function too. The smart bit is that to
+check whether a number is prime the stream will always have been
+generated to a high enough number to divide by. For example, if you
+want to check \(5\), then the stream already has 3 in it, and \(3^2 >
+5\), which means it passes.
+</p>
+
+<p>
+This code benefits a lot from memoization. My final code ended up
+looking like:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-js"><span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">isPrime</span> = _.memoize(<span style="color: #8ac6f2; font-weight: bold;">function</span>(<span style="color: #cae682;">n</span>) {
+  <span style="color: #8ac6f2; font-weight: bold;">function</span> <span style="color: #cae682;">p</span>(<span style="color: #cae682;">n</span>) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> {
+      v: n,
+      <span style="color: #cae682;">n</span>: <span style="color: #8ac6f2; font-weight: bold;">function</span>() {
+        <span style="color: #8ac6f2; font-weight: bold;">for</span> (n+=2 ; !isPrime(n) ; n+=2);
+        <span style="color: #8ac6f2; font-weight: bold;">return</span> p(n);
+      }
+    }
+  }
+
+  n=Math.abs(n);
+
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (n===2) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">true</span>;
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">if</span> (n &lt; 2 || n%2 === 0) {
+    <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">false</span>;
+  }
+
+  <span style="color: #8ac6f2; font-weight: bold;">var</span> <span style="color: #cae682;">pr</span>=p(3);
+
+  <span style="color: #8ac6f2; font-weight: bold;">do</span> {
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (pr.v * pr.v &gt; n) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">true</span>;
+    }
+    <span style="color: #8ac6f2; font-weight: bold;">if</span> (n%pr.v===0) {
+      <span style="color: #8ac6f2; font-weight: bold;">return</span> <span style="color: #e5786d;">false</span>;
+    }
+  }
+  <span style="color: #8ac6f2; font-weight: bold;">while</span> (pr=pr.n());
+});
+</pre>
+</div>
+
+<p>
+Ideally the stream should be memoized too.
+</p>
+
+<p>
+Now, this should be pretty quick for low numbers, certainly faster
+than the Miller-Rabin method, but for larger numbers it should be
+slower. Using Chrome I found the cross-over point to be around five
+thousand, but there wasn’t really much in it. Oddly, when I tried it
+in Firefox the stream-based method ran around four times faster while
+the Miller-Rabin method ran at about the same speed as in Chrome. As
+far as I can tell this means that in Firefox the stream-based method
+is faster for any number less than \(2^{26}\), which is as high as the
+Miller-Rabin method can safely go anyway.
+</p>
+
+<p>
+I don’t know why Firefox is so much faster than Chrome.
+</p>
+</div>
+<div id="postamble" class="status">
+                          <table>
+                              <tr>
+                                  <th>t</th>
+                                  <td><a href='https://twitter.com/flxzr'>@flxzr</a></td>
+                              </tr>
+                              <tr>
+                                  <th>g</th>
+                                  <td><a href='https://github.com/alanthird'>alanthird</a></td>
+                              </tr>
+                              <tr>
+                                  <th>e</th>
+                                  <td><a href='mailto:alan@idiocy.org'>Alan Third</a></td>
+                              </tr>
+                          </table>
+</div>
+</body>
+</html>
