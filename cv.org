@@ -1,0 +1,74 @@
+#+TITLE: Curriculum Vitae
+#+AUTHOR: Alan J. Third
+#+EMAIL: athird@googlemail.com
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+#+OPTIONS: html-postamble:nil
+
+* Alan Third
+
+* Contact Details
+  - email :: athird@googlemail.com
+
+* Education
+** 1998–2002
+   BEng (hons), Computer and Electronic Systems at The University of
+   Strathclyde, Glasgow
+
+* Experience
+** Argyll and Bute Council: IT Engineer — Application Support — 2004–present 
+   Responsibility for local-government website architecture and
+   support. Achieved A+ score on SSLLabs.com and implemented web site
+   fail‐over between data centres (Apache, nginx, HAProxy, Varnish,
+   Drupal, Go, PHP).
+
+   Wrote various web applications including roads fault reporting
+   front‐ends for use with internal CRM system and public facing
+   website (PHP, Javascript, REST, SOAP), interfacing with third‐party
+   back‐end (XML, SQL Server).
+
+   Interfaced internally developed and third‐party systems, eg. file
+   transfer mechanisms, feeder‐file creation, transformation and
+   ingestion (Perl, shell scripting).
+
+   Administered databases (Oracle, SQL Server, MySQL) and web servers
+   (Apache, nginx). Implemented web site fail‐over between two data
+   centres (HAProxy, Varnish, Drupal, Go, PHP).
+
+   Low‐level project management, e.g. coordinating teams for system
+   upgrades, and over‐seeing and training junior colleagues.
+
+** Argyll and Bute Council: IT Engineer — UNIX — 2003–2004
+   Server admin (Solaris).
+
+* Other Experience
+** GNU Emacs
+   Maintainer of the macOS/GNUstep port of Emacs. Fixed crash bugs and
+   ported features, i.e. horizontal scroll‐bars, threads, customising
+   window decorations. (lisp, C, Objective‐C, Cocoa/GNUstep, Git).
+
+** Other Technologies
+   I have experience with:
+
+   - UNIX servers
+     - GNU/Linux
+     - AIX
+   - MS Windows servers
+   - HTML/CSS
+   - Programming languages
+     - SQL
+     - Scheme
+     - Ruby
+   - Configuration management/monitoring tools
+     - Gitlab
+     - Oracle Enterprise Manager
+     - Ivanti Endpoint Security
+     - Spacewalk
+     - Puppet
+
+* Miscellaneous
+** Amateur Theatre
+   I have been involved in stage management for Amateur Dramatics
+   groups since 1992. This involves creating sets, rigging stages,
+   operating lighting and sound systems and responsibility for
+   managing a small team of stage crew.
