@@ -1,4 +1,4 @@
-#+TITLE:
+#+TITLE: idiocy.org
 * Articles
   - [[file:emacs-fonts-and-fontsets.org][Emacs, fonts and fontsets]]
   - Let’s go write a lisp
