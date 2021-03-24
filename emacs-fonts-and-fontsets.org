@@ -1,7 +1,10 @@
 #+TITLE: Emacs, fonts and fontsets
 #+date: 15th March 2019
 
-Yuan Fu has very kindly [[https://archive.casouri.co.uk/note/2019/emacs-%25E5%25AD%2597%25E4%25BD%2593%25E4%25B8%258E%25E5%25AD%2597%25E4%25BD%2593%25E9%259B%2586/index.html][translated this article into Chinese]].
+ - [[https://archive.casouri.co.uk/note/2019/emacs-%25E5%25AD%2597%25E4%25BD%2593%25E4%25B8%258E%25E5%25AD%2597%25E4%25BD%2593%25E9%259B%2586/index.html][Chinese translation]] by Yuan Fu
+ - [[https://www.ibidemgroup.com/edu/emacs-fuentes-idiomas/][Spanish translation]] by Jose Bescos of [[https://www.ibidemgroup.com][Ibidem Group]]
+
+-----
 
 One problem I've had with Emacs is understanding how the font system
 works. It's always been clear that fontsets are the answer to a lot of
